@@ -107,7 +107,7 @@
        <bool>true</bool>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="retir">
        <property name="geometry">
@@ -174,7 +174,38 @@
         <item row="1" column="5">
          <widget class="QComboBox" name="comboBox_4"/>
         </item>
-        <item row="2" column="0" colspan="6">
+        <item row="3" column="0" colspan="6">
+         <widget class="QTableWidget" name="tableWidget">
+          <property name="maximumSize">
+           <size>
+            <width>9999999</width>
+            <height>999999</height>
+           </size>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::MultiSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <attribute name="horizontalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>200</number>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="5">
          <widget class="QComboBox" name="comboBox_2">
           <property name="font">
            <font>
@@ -199,29 +230,11 @@
           </item>
          </widget>
         </item>
-        <item row="3" column="0" colspan="6">
-         <widget class="QTableWidget" name="tableWidget">
-          <property name="maximumSize">
-           <size>
-            <width>9999999</width>
-            <height>999999</height>
-           </size>
+        <item row="2" column="5">
+         <widget class="QPushButton" name="pushButton_4">
+          <property name="text">
+           <string>Excluir</string>
           </property>
-          <attribute name="horizontalHeaderCascadingSectionResizes">
-           <bool>true</bool>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>200</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="verticalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
          </widget>
         </item>
        </layout>
@@ -375,8 +388,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>578</width>
-         <height>216</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nivel2.ui'
 #
-# Created: Fri Dec  4 10:27:04 2015
+# Created: Fri Dec  4 13:40:39 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -109,18 +109,10 @@ class Ui_nivel2(object):
         self.comboBox_4 = QtGui.QComboBox(self.retir)
         self.comboBox_4.setObjectName(_fromUtf8("comboBox_4"))
         self.gridLayout_2.addWidget(self.comboBox_4, 1, 5, 1, 1)
-        self.comboBox_2 = QtGui.QComboBox(self.retir)
-        font = QtGui.QFont()
-        font.setBold(True)
-        font.setWeight(75)
-        self.comboBox_2.setFont(font)
-        self.comboBox_2.setObjectName(_fromUtf8("comboBox_2"))
-        self.comboBox_2.addItem(_fromUtf8(""))
-        self.comboBox_2.addItem(_fromUtf8(""))
-        self.comboBox_2.addItem(_fromUtf8(""))
-        self.gridLayout_2.addWidget(self.comboBox_2, 2, 0, 1, 6)
         self.tableWidget = QtGui.QTableWidget(self.retir)
         self.tableWidget.setMaximumSize(QtCore.QSize(9999999, 999999))
+        self.tableWidget.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
+        self.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableWidget.setObjectName(_fromUtf8("tableWidget"))
         self.tableWidget.setColumnCount(0)
         self.tableWidget.setRowCount(0)
@@ -130,6 +122,19 @@ class Ui_nivel2(object):
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.verticalHeader().setStretchLastSection(False)
         self.gridLayout_2.addWidget(self.tableWidget, 3, 0, 1, 6)
+        self.comboBox_2 = QtGui.QComboBox(self.retir)
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.comboBox_2.setFont(font)
+        self.comboBox_2.setObjectName(_fromUtf8("comboBox_2"))
+        self.comboBox_2.addItem(_fromUtf8(""))
+        self.comboBox_2.addItem(_fromUtf8(""))
+        self.comboBox_2.addItem(_fromUtf8(""))
+        self.gridLayout_2.addWidget(self.comboBox_2, 2, 0, 1, 5)
+        self.pushButton_4 = QtGui.QPushButton(self.retir)
+        self.pushButton_4.setObjectName(_fromUtf8("pushButton_4"))
+        self.gridLayout_2.addWidget(self.pushButton_4, 2, 5, 1, 1)
         self.toolBox.addItem(self.retir, icon, _fromUtf8(""))
         self.cad = QtGui.QWidget()
         self.cad.setGeometry(QtCore.QRect(0, 0, 564, 295))
@@ -202,7 +207,7 @@ class Ui_nivel2(object):
         self.gridLayout_4.addWidget(self.tabWidget, 0, 0, 1, 1)
         self.toolBox.addItem(self.cad, icon, _fromUtf8(""))
         self.page_2 = QtGui.QWidget()
-        self.page_2.setGeometry(QtCore.QRect(0, 0, 578, 216))
+        self.page_2.setGeometry(QtCore.QRect(0, 0, 98, 28))
         self.page_2.setObjectName(_fromUtf8("page_2"))
         self.toolBox.addItem(self.page_2, _fromUtf8(""))
         self.gridLayout.addWidget(self.toolBox, 3, 0, 1, 2)
@@ -212,7 +217,7 @@ class Ui_nivel2(object):
         nivel2.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(nivel2)
-        self.toolBox.setCurrentIndex(1)
+        self.toolBox.setCurrentIndex(0)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(nivel2)
 
@@ -226,6 +231,7 @@ class Ui_nivel2(object):
         self.comboBox_2.setItemText(0, _translate("nivel2", "Todas", None))
         self.comboBox_2.setItemText(1, _translate("nivel2", "Em aberto", None))
         self.comboBox_2.setItemText(2, _translate("nivel2", "Encerradas", None))
+        self.pushButton_4.setText(_translate("nivel2", "Excluir", None))
         self.toolBox.setItemText(self.toolBox.indexOf(self.retir), _translate("nivel2", "Retiradas", None))
         self.label_6.setText(_translate("nivel2", "Filtrar Nome:", None))
         self.pushButton_2.setText(_translate("nivel2", "Novo", None))

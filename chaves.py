@@ -1,9 +1,10 @@
 #coding=utf-8
 from PyQt4 import QtCore,QtGui
-from PyQt4.Qt import QTimer, QModelIndex, QTableWidgetSelectionRange
+from PyQt4.Qt import QTimer
 from login import Ui_MainWindow
 from dialog import Ui_Dialog
 from dialog2 import Ui_Dialog2
+from dialog3 import Ui_Dialog_3
 from nivel1 import Ui_Nivel1
 from entregar import Ui_Mainentrega
 from receber import Ui_receber
@@ -15,6 +16,7 @@ import psycopg2
 import sys
 import csv
 import glob
+from samba.common import confirm
     
 def select_banco_str(sql):
     global hot
@@ -214,7 +216,17 @@ class dialog2(QtGui.QDialog):
         self.close()
         e = entregar(self)
         e.show()
-                
+        
+class dialog3(QtGui.QDialog):
+    def __init__(self,parent = None):
+        QtGui.QWidget.__init__(self,parent)
+        self.ui = Ui_Dialog_3()
+        self.ui.setupUi(self)   
+        QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL('clicked()'),self.fecha)
+        QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha)
+    def fecha(self):
+        self.close()
+
 class nivel1(QtGui.QMainWindow):
     def __init__(self,parent = None):
         QtGui.QWidget.__init__(self,parent)
@@ -449,47 +461,85 @@ class nivel2(QtGui.QMainWindow):
         self.ui.tabWidget.setCurrentIndex(0)
         self.preenche_usuarios()
         timer = QTimer(self)
+        timer2 = QTimer(self)
         QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha)  
         QtCore.QObject.connect(self.ui.comboBox,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas) 
         QtCore.QObject.connect(self.ui.comboBox_2,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas) 
         QtCore.QObject.connect(self.ui.comboBox_3,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas)
         QtCore.QObject.connect(self.ui.comboBox_4,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas)
+        QtCore.QObject.connect(self.ui.pushButton_4,QtCore.SIGNAL('clicked()'),self.exclui_retiradas)  
         QtCore.QObject.connect(self.ui.pushButton_3,QtCore.SIGNAL("clicked()"),self.exclui_usuarios)
-        QtCore.QObject.connect(timer,QtCore.SIGNAL("timeout()"),self.tabela_retiradas)
+        QtCore.QObject.connect(timer2,QtCore.SIGNAL("timeout()"),self.tabela_retiradas)
         QtCore.QObject.connect(timer,QtCore.SIGNAL("timeout()"),self.lista_logins)
         self.ui.lineEdit.textChanged.connect(self.preenche_usuarios)
         timer.start(5000)
+        timer2.start(15000)
+    def exclui_retiradas(self):
+        global exc
+        select = self.ui.tableWidget.selectedItems()
+        items = []   
+        if len(select) > 0:    
+            for sel in select:
+                items.append(QtGui.QTableWidgetItem(sel).text())       
+                exc = []
+                i = 0
+            if self.ui.comboBox_2.currentIndex() == 0 or self.ui.comboBox_2.currentIndex() == 2:
+                num = 7
+            else: num = 6 
+            if len(items) > num:    
+                while i < len(items):
+                    exc.append(int(items[i]))
+                    i += num
+            else:
+                exc.append(int(items[i]))
+            if len(exc) >= 1:
+                d = dialog3(self)
+                d.ui.label.setText(u"A exclusão de retiradas é permanente e não pode ser desfeita.")
+                d.show()
+                self.connect(d.ui.pushButton,QtCore.SIGNAL('clicked()'),self.excluit)   
+    def excluit(self):
+        global exc
+        for e in exc:
+            try:
+                sql = ''' delete from retiradas where id = %d ''' % e
+                insert_banco(sql)
+                self.tabela_retiradas()
+            except psycopg2.Error:
+                d = dialog(self)
+                d.ui.label.setText(u"Não foi possivel excluir retirada %d !" % e) 
+                d.show()
+    def excluiu(self):
+        global excu
+        for e in excu:
+            try:
+                sql = ''' delete from usuarios where id = %d ''' % e
+                insert_banco(sql)
+                self.tabela_retiradas()
+            except psycopg2.IntegrityError:
+                d = dialog(self)
+                d.ui.label.setText(u"Não foi possivel excluir usuário %d,existem retiradas ou autorizações para o mesmo!" % e) 
+                d.show()
+        self.preenche_usuarios()
     def exclui_usuarios(self):
         select = self.ui.tableWidget_2.selectedItems()
         items = []
-        for sel in select:
-            items.append(QtGui.QTableWidgetItem(sel).text())   
-        exc = []
-        i = 0
-        if len(items) > 6:    
-            while i < len(items):
-                exc.append(int(items[i]))
-                i += 6
-        else:
-            exc.append(int(items[i]))        
-        if len(exc) > 1:
-            for e in exc:
-                try:
-                    sql = ''' delete from usuarios where id = %d ''' % e
-                    insert_banco(sql)
-                except psycopg2.IntegrityError:
-                    d = dialog(self)
-                    d.ui.label.setText(u"Não foi possivel excluir usuário %d,tente excluir as autorizações e/ou retiradas primeiro!" % e) 
-                    d.show()
-        else :
-            try:
-                sql = ''' delete from usuarios where id = %d ''' % exc[0]
-                insert_banco(sql)
-            except psycopg2.IntegrityError:
-                d = dialog(self)
-                d.ui.label.setText(u"Não foi possivel excluir usuário %d,tente excluir as autorizações e/ou retiradas primeiro!" % exc[0]) 
-                d.show()          
-                    
+        global excu
+        if len(select) > 0:
+            for sel in select:
+                items.append(QtGui.QTableWidgetItem(sel).text())   
+            excu = []
+            i = 0    
+            if len(items) > 6:    
+                while i < len(items):
+                    excu.append(int(items[i]))
+                    i += 6
+            else:
+                excu.append(int(items[i]))        
+            if len(excu) >= 1:
+                d = dialog3(self)
+                d.ui.label.setText(u"A exclusão de usuários é permanente e não pode ser desfeita.")
+                d.show()
+                self.connect(d.ui.pushButton,QtCore.SIGNAL('clicked()'),self.excluiu)    
     def preenche_usuarios(self):
         self.ui.tableWidget_2.clear()
         if self.ui.lineEdit.text() > 0:
@@ -498,7 +548,7 @@ class nivel2(QtGui.QMainWindow):
         else:
             sql = ''' select * from usuarios'''
         users = select_banco_str(sql) 
-        colunas = ['ID','Nome','Cod.Barras','Email','Cpf','Tipo']
+        colunas = [' ID ','Nome','Cod.Barras','Email','Cpf','Tipo']
         if len(users) > 0:
             self.ui.tableWidget_2.setRowCount(len(users))
             self.ui.tableWidget_2.setColumnCount(len(colunas))         
@@ -562,23 +612,23 @@ class nivel2(QtGui.QMainWindow):
         if m < 10: mes = ('0' + str(m) + '/' + str(ano))
         else: mes = (str(m) + '/' + str(ano))   
         if escolha == 0: # Todas
-            sql = '''select l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
+            sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
             from logins l,retiradas r,salas s,usuarios u,chaves c
             where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
             order by r.datahora_rec desc''' % (predio,mes)
-            colunas = ['Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega','Data/Hora Recebimento']
+            colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega','Data/Hora Recebimento']
         elif escolha == 1: # Em Aberto
-            sql =  '''select l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
+            sql =  '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
             from logins l,retiradas r,salas s,usuarios u,chaves c
             where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
             order by r.datahora_ent desc'''   % (predio,mes)
-            colunas = ['Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega']
+            colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega']
         else: # Fechadas
-            sql = '''select l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
+            sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
             from logins l,retiradas r,salas s,usuarios u,chaves c
             where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and r.datahora_rec notnull and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
             order by r.datahora_rec desc''' % (predio,mes)
-            colunas = ['Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega','Data/Hora Recebimento']
+            colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega','Data/Hora Recebimento']
         ret = select_banco_str(sql)
         if len(ret) > 0:
             self.ui.tableWidget.setRowCount(len(ret))
@@ -598,7 +648,6 @@ class nivel2(QtGui.QMainWindow):
             self.ui.tableWidget.setRowCount(0)
             self.ui.tableWidget.setColumnCount(0)  
              
-        
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     myapp = login()
