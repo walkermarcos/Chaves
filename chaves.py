@@ -481,6 +481,14 @@ class nivel2(QtGui.QMainWindow):
                     d = dialog(self)
                     d.ui.label.setText(u"Não foi possivel excluir usuário %d,tente excluir as autorizações e/ou retiradas primeiro!" % e) 
                     d.show()
+        else :
+            try:
+                sql = ''' delete from usuarios where id = %d ''' % exc[0]
+                insert_banco(sql)
+            except psycopg2.IntegrityError:
+                d = dialog(self)
+                d.ui.label.setText(u"Não foi possivel excluir usuário %d,tente excluir as autorizações e/ou retiradas primeiro!" % exc[0]) 
+                d.show()          
                     
     def preenche_usuarios(self):
         self.ui.tableWidget_2.clear()
