@@ -1,6 +1,6 @@
 #coding=utf-8
 from PyQt4 import QtCore,QtGui
-from PyQt4.Qt import QTimer
+from PyQt4.Qt import QTimer, QModelIndex, QTableWidgetSelectionRange
 from login import Ui_MainWindow
 from dialog import Ui_Dialog
 from dialog2 import Ui_Dialog2
@@ -445,15 +445,69 @@ class nivel2(QtGui.QMainWindow):
         self.preenche_pred()
         self.tabela_retiradas()
         self.lista_logins()
+        self.ui.toolBox.setCurrentIndex(0)
+        self.ui.tabWidget.setCurrentIndex(0)
+        self.preenche_usuarios()
         timer = QTimer(self)
         QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha)  
         QtCore.QObject.connect(self.ui.comboBox,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas) 
         QtCore.QObject.connect(self.ui.comboBox_2,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas) 
         QtCore.QObject.connect(self.ui.comboBox_3,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas)
         QtCore.QObject.connect(self.ui.comboBox_4,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas)
+        QtCore.QObject.connect(self.ui.pushButton_3,QtCore.SIGNAL("clicked()"),self.exclui_usuarios)
         QtCore.QObject.connect(timer,QtCore.SIGNAL("timeout()"),self.tabela_retiradas)
         QtCore.QObject.connect(timer,QtCore.SIGNAL("timeout()"),self.lista_logins)
+        self.ui.lineEdit.textChanged.connect(self.preenche_usuarios)
         timer.start(5000)
+    def exclui_usuarios(self):
+        select = self.ui.tableWidget_2.selectedItems()
+        items = []
+        for sel in select:
+            items.append(QtGui.QTableWidgetItem(sel).text())   
+        exc = []
+        i = 0
+        if len(items) > 6:    
+            while i < len(items):
+                exc.append(int(items[i]))
+                i += 6
+        else:
+            exc.append(int(items[i]))        
+        if len(exc) > 1:
+            for e in exc:
+                try:
+                    sql = ''' delete from usuarios where id = %d ''' % e
+                    insert_banco(sql)
+                except psycopg2.IntegrityError:
+                    d = dialog(self)
+                    d.ui.label.setText(u"Não foi possivel excluir usuário %d,tente excluir as autorizações e/ou retiradas primeiro!" % e) 
+                    d.show()
+                    
+    def preenche_usuarios(self):
+        self.ui.tableWidget_2.clear()
+        if self.ui.lineEdit.text() > 0:
+            nome = str(self.ui.lineEdit.text())
+            sql = ''' select * from usuarios where upper(nome) like '%s%%' ''' % nome.upper()
+        else:
+            sql = ''' select * from usuarios'''
+        users = select_banco_str(sql) 
+        colunas = ['ID','Nome','Cod.Barras','Email','Cpf','Tipo']
+        if len(users) > 0:
+            self.ui.tableWidget_2.setRowCount(len(users))
+            self.ui.tableWidget_2.setColumnCount(len(colunas))         
+            for j in range(len(colunas)):
+                item2 = QtGui.QTableWidgetItem(colunas[j])
+                self.ui.tableWidget_2.setHorizontalHeaderItem(j,item2)
+                maior = len(colunas[j])
+                for i in range(len(users)):
+                    texto = str(users[i][j])
+                    item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
+                    self.ui.tableWidget_2.setItem(i,j,item)
+                    if len(texto) > maior: maior = len(texto)
+                self.ui.tableWidget_2.setColumnWidth(j,(maior*8))  
+        else: 
+            self.ui.tableWidget.clear()
+            self.ui.tableWidget.setRowCount(0)
+            self.ui.tableWidget.setColumnCount(0)
     def fecha(self):
         y = login(self)
         self.close() 
