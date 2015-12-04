@@ -596,7 +596,8 @@ class nivel2(QtGui.QMainWindow):
         else: 
             self.ui.tableWidget.clear()
             self.ui.tableWidget.setRowCount(0)
-            self.ui.tableWidget.setColumnCount(0)               
+            self.ui.tableWidget.setColumnCount(0)  
+             
         
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
