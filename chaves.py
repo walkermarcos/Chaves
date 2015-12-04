@@ -16,7 +16,6 @@ import psycopg2
 import sys
 import csv
 import glob
-from samba.common import confirm
     
 def select_banco_str(sql):
     global hot
