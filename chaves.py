@@ -10,6 +10,7 @@ from entregar import Ui_Mainentrega
 from receber import Ui_receber
 from conf import Ui_Conf
 from nivel2 import Ui_nivel2
+from cad_user import Ui_Cadast_user
 from mhlib import isnumeric
 import datetime
 import psycopg2
@@ -468,12 +469,43 @@ class nivel2(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.comboBox_4,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas)
         QtCore.QObject.connect(self.ui.pushButton_4,QtCore.SIGNAL('clicked()'),self.exclui_retiradas)  
         QtCore.QObject.connect(self.ui.pushButton_3,QtCore.SIGNAL("clicked()"),self.exclui_usuarios)
+        QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL("clicked()"),self.add_user)
         QtCore.QObject.connect(timer2,QtCore.SIGNAL("timeout()"),self.tabela_retiradas)
         QtCore.QObject.connect(timer,QtCore.SIGNAL("timeout()"),self.lista_logins)
         self.ui.lineEdit.textChanged.connect(self.preenche_usuarios)
         self.ui.lineEdit_2.textChanged.connect(self.tabela_retiradas)
+        self.ui.tableWidget_2.doubleClicked.connect(self.lista_user)
         timer.start(5000)
         timer2.start(15000)
+    def add_user(self):
+        c = cad_user(self)
+        self.setVisible(False)
+        c.show()
+        self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.add_user)
+    def lista_user(self):
+        select = self.ui.tableWidget_2.selectedItems()
+        global usr_id
+        list_user = []
+        for s in select:
+            list_user.append(QtGui.QTableWidgetItem(s).text())
+        usr_id = list_user[0]
+        nome = list_user[1]
+        if list_user[2] == 'None': cod = 0
+        else:    cod = list_user[2]
+        eml = list_user[3]
+        cpf = list_user[4]
+        tipo = list_user[5]
+        c = cad_user(self)
+        c.limpa()
+        c.ui.lineEdit.setText(nome)
+        c.ui.spinBox.setValue(int(cod))
+        c.ui.lineEdit_3.setText(eml)
+        c.ui.lineEdit_4.setText(cpf)
+        if tipo == 'p':c.ui.comboBox.setCurrentIndex(0)
+        else : c.ui.comboBox.setCurrentIndex(1)
+        c.show()
+        self.setVisible(False)    
+        self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.atualiza_user)
     def exclui_retiradas(self):
         global exc
         select = self.ui.tableWidget.selectedItems()
@@ -544,7 +576,7 @@ class nivel2(QtGui.QMainWindow):
         self.ui.tableWidget_2.clear()
         if self.ui.lineEdit.text() > 0:
             nome = str(self.ui.lineEdit.text())
-            sql = ''' select * from usuarios where upper(nome) like '%s%%' ''' % nome.upper()
+            sql = ''' select * from usuarios where upper(nome) like '%s%%' order by nome''' % nome.upper()
         else:
             sql = ''' select * from usuarios'''
         users = select_banco_str(sql) 
@@ -666,6 +698,68 @@ class nivel2(QtGui.QMainWindow):
             self.ui.tableWidget.clear()
             self.ui.tableWidget.setRowCount(0)
             self.ui.tableWidget.setColumnCount(0)  
+
+class cad_user(QtGui.QMainWindow):
+    def __init__(self,parent = None):
+        QtGui.QWidget.__init__(self,parent)
+        self.ui = Ui_Cadast_user()
+        self.ui.setupUi(self)             
+        QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL('clicked()'),self.fecha)
+        self.limpa()
+    def limpa(self):
+        self.ui.lineEdit.clear()
+        self.ui.spinBox.clear()
+        self.ui.lineEdit_3.clear()
+        self.ui.lineEdit_4.clear()
+        self.ui.comboBox.setCurrentIndex(0) 
+    def add_user(self):
+        lista = []
+        lista.append(self.ui.lineEdit.text())
+        lista.append(self.ui.spinBox.value())
+        lista.append(self.ui.lineEdit_3.text())
+        lista.append(self.ui.lineEdit_4.text())
+        if self.ui.comboBox.currentIndex() == 0: tipo = 'p'
+        else: tipo = 'a'
+        lista.append(tipo)
+        sql = ''' insert into usuarios (nome,cod_barra,email,cpf,tipo) values ('%s',%d,'%s','%s','%s') ''' % (lista[0],lista[1],lista[2],
+                                                                                                              lista[3],lista[4])
+        try:
+            insert_banco(sql)
+            d = dialog(self)
+            d.ui.label.setText(u"Usuário cadastrado com sucesso!")
+            d.show()
+        except psycopg2.Error:
+            d = dialog(self)
+            d.ui.label.setText(u"Ocorreu um erro,contate administrador do programa!")
+        self.limpa()
+    def atualiza_user(self):
+        global usr_id
+        lista = []
+        lista.append("id")
+        lista.append(self.ui.lineEdit.text())
+        lista.append(self.ui.spinBox.value())
+        lista.append(self.ui.lineEdit_3.text())
+        lista.append(self.ui.lineEdit_4.text())
+        if self.ui.comboBox.currentIndex() == 0: tipo = 'p'
+        else: tipo = 'a'
+        lista.append(tipo)  
+        sql = ''' update usuarios set nome = '%s',cod_barra = %d,email = '%s',cpf = '%s',tipo = '%s' where id = %d ''' % (lista[1],lista[2],
+                                                                        lista[3],lista[4],lista[5],int(usr_id))  
+        try:
+            insert_banco(sql)
+            d = dialog(self)
+            d.ui.label.setText(u"Alteração feita com sucesso!")
+            d.show()
+        except psycopg2.Error:
+            d = dialog(self)
+            d.ui.label.setText(u"Não foi possível realizar a alteração desejada.!")
+            d.show()
+        self.limpa()
+    def fecha(self):
+        n = nivel2(self)
+        self.close()
+        n.setVisible(True)
+        n.ui.toolBox.setCurrentIndex(1)
              
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
