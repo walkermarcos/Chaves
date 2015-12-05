@@ -471,6 +471,7 @@ class nivel2(QtGui.QMainWindow):
         QtCore.QObject.connect(timer2,QtCore.SIGNAL("timeout()"),self.tabela_retiradas)
         QtCore.QObject.connect(timer,QtCore.SIGNAL("timeout()"),self.lista_logins)
         self.ui.lineEdit.textChanged.connect(self.preenche_usuarios)
+        self.ui.lineEdit_2.textChanged.connect(self.tabela_retiradas)
         timer.start(5000)
         timer2.start(15000)
     def exclui_retiradas(self):
@@ -604,30 +605,49 @@ class nivel2(QtGui.QMainWindow):
             self.ui.comboBox.addItem(text.decode('utf-8'))        
     def tabela_retiradas(self):
         self.ui.tableWidget.clear()
+        if len(self.ui.lineEdit_2.text()) > 0:
+            filtro = str(self.ui.lineEdit_2.text())
+        else:
+            filtro = ''    
         ano = self.ui.comboBox_4.itemText(self.ui.comboBox_4.currentIndex())
         predio = int(self.ui.comboBox.itemText(self.ui.comboBox.currentIndex())[:3])
         escolha = self.ui.comboBox_2.currentIndex()
         m = (int(self.ui.comboBox_3.currentIndex()) + 1)
         if m < 10: mes = ('0' + str(m) + '/' + str(ano))
         else: mes = (str(m) + '/' + str(ano))   
-        if escolha == 0: # Todas
+        if escolha == 0 : # Todas
             sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
             from logins l,retiradas r,salas s,usuarios u,chaves c
             where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
             order by r.datahora_rec desc''' % (predio,mes)
             colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega','Data/Hora Recebimento']
+            if len(filtro) > 0:
+                sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
+            from logins l,retiradas r,salas s,usuarios u,chaves c
+            where (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%') and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
+            order by r.datahora_rec desc''' % (filtro.upper(),filtro.upper(),predio,mes)    
         elif escolha == 1: # Em Aberto
             sql =  '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
             from logins l,retiradas r,salas s,usuarios u,chaves c
             where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
             order by r.datahora_ent desc'''   % (predio,mes)
             colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega']
+            if len(filtro) > 0:
+                sql =  '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
+            from logins l,retiradas r,salas s,usuarios u,chaves c
+            where (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%') and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
+            order by r.datahora_ent desc'''   % (filtro.upper(),filtro.upper(),predio,mes)
         else: # Fechadas
             sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
             from logins l,retiradas r,salas s,usuarios u,chaves c
             where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and r.datahora_rec notnull and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
             order by r.datahora_rec desc''' % (predio,mes)
             colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega','Data/Hora Recebimento']
+            if len(filtro) > 0:
+                sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
+            from logins l,retiradas r,salas s,usuarios u,chaves c
+            where (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%') and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and r.datahora_rec notnull and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
+            order by r.datahora_rec desc''' % (filtro.upper(),filtro.upper(),predio,mes)
         ret = select_banco_str(sql)
         if len(ret) > 0:
             self.ui.tableWidget.setRowCount(len(ret))
