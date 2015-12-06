@@ -460,6 +460,8 @@ class nivel2(QtGui.QMainWindow):
         self.ui.toolBox.setCurrentIndex(0)
         self.ui.tabWidget.setCurrentIndex(0)
         self.preenche_usuarios()
+        self.lista_usuarios()
+        self.tabela_autos()
         timer = QTimer(self)
         timer2 = QTimer(self)
         QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha)  
@@ -467,6 +469,7 @@ class nivel2(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.comboBox_2,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas) 
         QtCore.QObject.connect(self.ui.comboBox_3,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas)
         QtCore.QObject.connect(self.ui.comboBox_4,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas)
+        QtCore.QObject.connect(self.ui.comboBox_5,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.preenche_sala)
         QtCore.QObject.connect(self.ui.pushButton_4,QtCore.SIGNAL('clicked()'),self.exclui_retiradas)  
         QtCore.QObject.connect(self.ui.pushButton_3,QtCore.SIGNAL("clicked()"),self.exclui_usuarios)
         QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL("clicked()"),self.add_user)
@@ -475,13 +478,69 @@ class nivel2(QtGui.QMainWindow):
         self.ui.lineEdit.textChanged.connect(self.preenche_usuarios)
         self.ui.lineEdit_2.textChanged.connect(self.tabela_retiradas)
         self.ui.tableWidget_2.doubleClicked.connect(self.lista_user)
+        self.ui.lineEdit_3.textChanged.connect(self.lista_usuarios)
+        self.ui.lineEdit_4.textChanged.connect(self.tabela_autos)
         timer.start(5000)
-        timer2.start(15000)
+        timer2.start(15000) 
+    def tabela_autos(self):
+        self.ui.tableWidget_3.clear()
+        if len(self.ui.lineEdit_4.text()) > 0:
+            filtro = str(self.ui.lineEdit_4.text())
+            sql = ''' select a.id,s.nome,u.nome,l.nome
+            from autos a,salas s,usuarios u,logins l
+            where a.sala_id = s.id and a.usuario_id = u.id and a.login_id = l.id and (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%')
+            order by s.nome ''' % (filtro.upper(),filtro.upper())
+        else:
+            sql = ''' select a.id,s.nome,u.nome,l.nome
+                    from autos a,salas s,usuarios u,logins l
+                    where a.sala_id = s.id and a.usuario_id = u.id and a.login_id = l.id
+                    order by s.nome '''
+        autos = select_banco_str(sql)
+        colunas = [' ID ','Sala',u'Usuário','Login'] 
+        if len(autos) > 0:
+            self.ui.tableWidget_3.setRowCount(len(autos))
+            self.ui.tableWidget_3.setColumnCount(len(colunas))         
+            for j in range(len(colunas)):
+                item2 = QtGui.QTableWidgetItem(colunas[j])
+                self.ui.tableWidget_3.setHorizontalHeaderItem(j,item2)
+                maior = len(colunas[j])
+                for i in range(len(autos)):
+                    texto = str(autos[i][j])
+                    item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
+                    self.ui.tableWidget_3.setItem(i,j,item)
+                    if len(texto) > maior: maior = len(texto)
+                self.ui.tableWidget_3.setColumnWidth(j,(maior*8))  
+        else: 
+            self.ui.tableWidget.clear()
+            self.ui.tableWidget.setRowCount(0)
+            self.ui.tableWidget.setColumnCount(0)   
+    def lista_usuarios(self):
+        self.ui.listWidget_2.clear()
+        if len(self.ui.lineEdit_3.text()) > 0:
+            nome = u"%s" % str(self.ui.lineEdit_3.text())
+            sql = ''' select id,nome from usuarios where upper(nome) like '%s%%'
+                    order by nome''' % nome.upper()
+        else:
+            sql = ''' select id,nome from usuarios order by nome '''
+        usuarios = select_banco_str(sql)
+        for usuario in usuarios:
+            texto = "%3d - %s" % usuario
+            item = QtGui.QListWidgetItem(texto.decode('utf-8'))
+            self.ui.listWidget_2.addItem(item)
+    def preenche_sala(self):
+        self.ui.comboBox_6.clear()
+        predio = int(self.ui.comboBox_5.itemText(self.ui.comboBox_5.currentIndex())[:3])
+        sql = ''' select id,nome from salas where predio_id = %d order by nome''' % predio
+        salas = select_banco_str(sql)
+        for sala in salas:
+            texto = "%3d - %s" % sala
+            self.ui.comboBox_6.addItem(texto.decode('utf-8'))
     def add_user(self):
         c = cad_user(self)
         self.setVisible(False)
         c.show()
         self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.add_user)
+        c.ui.lineEdit.setFocus()
     def lista_user(self):
         select = self.ui.tableWidget_2.selectedItems()
         global usr_id
@@ -506,6 +565,7 @@ class nivel2(QtGui.QMainWindow):
         c.show()
         self.setVisible(False)    
         self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.atualiza_user)
+        c.ui.lineEdit.setFocus()
     def exclui_retiradas(self):
         global exc
         select = self.ui.tableWidget.selectedItems()
@@ -634,7 +694,9 @@ class nivel2(QtGui.QMainWindow):
         pred = select_banco_str(sql)
         for p in pred:
             text = "%2d - %s" % p
-            self.ui.comboBox.addItem(text.decode('utf-8'))        
+            self.ui.comboBox.addItem(text.decode('utf-8'))
+            self.ui.comboBox_5.addItem(text.decode('utf-8')) 
+        self.preenche_sala()       
     def tabela_retiradas(self):
         self.ui.tableWidget.clear()
         if len(self.ui.lineEdit_2.text()) > 0:
@@ -735,7 +797,7 @@ class cad_user(QtGui.QMainWindow):
     def atualiza_user(self):
         global usr_id
         lista = []
-        lista.append("id")
+        lista.append(usr_id)
         lista.append(self.ui.lineEdit.text())
         lista.append(self.ui.spinBox.value())
         lista.append(self.ui.lineEdit_3.text())
@@ -744,7 +806,7 @@ class cad_user(QtGui.QMainWindow):
         else: tipo = 'a'
         lista.append(tipo)  
         sql = ''' update usuarios set nome = '%s',cod_barra = %d,email = '%s',cpf = '%s',tipo = '%s' where id = %d ''' % (lista[1],lista[2],
-                                                                        lista[3],lista[4],lista[5],int(usr_id))  
+                                                                        lista[3],lista[4],lista[5],int(lista[0]))  
         try:
             insert_banco(sql)
             d = dialog(self)
