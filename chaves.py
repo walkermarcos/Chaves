@@ -504,7 +504,7 @@ class nivel2(QtGui.QMainWindow):
         timer2.start(15000) 
     def exclui_copia(self):
         d = dialog3(self)
-        d.ui.label.setText(u"A exclusão de autorizações é permanente e não pode ser desfeita.")
+        d.ui.label.setText(u"A exclusão de cópias é permanente e não pode ser desfeita.")
         d.show()
         self.connect(d.ui.pushButton,QtCore.SIGNAL('clicked()'),self.excluic)
     def excluic(self):
@@ -584,7 +584,7 @@ class nivel2(QtGui.QMainWindow):
                 self.ui.lineEdit_3.clear()
     def exclui_sala(self):
         d = dialog3(self)
-        d.ui.label.setText(u"A exclusão de autorizações é permanente e não pode ser desfeita.")
+        d.ui.label.setText(u"A exclusão de salas é permanente e não pode ser desfeita.")
         d.show()
         self.connect(d.ui.pushButton,QtCore.SIGNAL('clicked()'),self.excluis)
     def excluis(self):
