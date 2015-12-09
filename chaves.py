@@ -238,6 +238,7 @@ class nivel1(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.but_rec,QtCore.SIGNAL('clicked()'),self.receberc)   
         self.ui.tableWidget.doubleClicked.connect(self.recebers)      
         self.preenche_lista()
+        self.ui.lineEdit.textChanged.connect(self.preenche_lista)
     def recebers(self):
         select = self.ui.tableWidget.selectedItems()
         items = []
@@ -288,9 +289,16 @@ class nivel1(QtGui.QMainWindow):
     def preenche_lista(self):
         colunas = ['Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega']
         self.ui.tableWidget.clear()
-        sql = '''select l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
-            from logins l,retiradas r,salas s,usuarios u,chaves c
-            where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull'''
+        if (self.ui.lineEdit.text()) == 0:
+            sql = '''select l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
+                from logins l,retiradas r,salas s,usuarios u,chaves c
+                where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull'''
+        else :
+            filtro = str(self.ui.lineEdit.text())
+            sql = '''select l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
+                from logins l,retiradas r,salas s,usuarios u,chaves c
+                where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull
+                and (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%')''' % (filtro.upper(),filtro.upper())
         ret = select_banco_str(sql)
         self.ui.tableWidget.setRowCount(len(ret))
         self.ui.tableWidget.setColumnCount(5)
@@ -473,6 +481,8 @@ class nivel2(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.pushButton_4,QtCore.SIGNAL('clicked()'),self.exclui_retiradas)  
         QtCore.QObject.connect(self.ui.pushButton_3,QtCore.SIGNAL("clicked()"),self.exclui_usuarios)
         QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL("clicked()"),self.add_user)
+        QtCore.QObject.connect(self.ui.pushButton_5,QtCore.SIGNAL("clicked()"),self.insert_autos)
+        QtCore.QObject.connect(self.ui.pushButton_6,QtCore.SIGNAL("clicked()"),self.exclui_autos)
         QtCore.QObject.connect(timer2,QtCore.SIGNAL("timeout()"),self.tabela_retiradas)
         QtCore.QObject.connect(timer,QtCore.SIGNAL("timeout()"),self.lista_logins)
         self.ui.lineEdit.textChanged.connect(self.preenche_usuarios)
@@ -482,6 +492,70 @@ class nivel2(QtGui.QMainWindow):
         self.ui.lineEdit_4.textChanged.connect(self.tabela_autos)
         timer.start(5000)
         timer2.start(15000) 
+    def exclui_autos(self):
+        select = self.ui.tableWidget_3.selectedItems()
+        lista = []
+        for sel in select:
+            item = QtGui.QTableWidgetItem(sel).text()
+            lista.append(item)
+        global exca
+        exca = []
+        i = 0    
+        if len(lista) > 4:    
+            while i < len(lista):
+                exca.append(int(lista[i]))
+                i += 4
+        else:
+            exca.append(int(lista[i]))
+        if len(exca) > 0:
+            d = dialog3(self)
+            d.ui.label.setText(u"A exclusão de autorizações é permanente e não pode ser desfeita.")
+            d.show()
+            self.connect(d.ui.pushButton,QtCore.SIGNAL('clicked()'),self.excluia)
+    def excluia(self):
+        global exca
+        for e in exca:
+            try:
+                sql = ''' delete from autos where id = %d ''' % e
+                insert_banco(sql)
+                d = dialog(self)
+                d.ui.label.setText(u"Autorização %d excluida!" % e) 
+                d.show()
+                self.tabela_autos()
+            except psycopg2.Error:
+                d = dialog(self)
+                d.ui.label.setText(u"Não foi possivel excluir autorização %d !" % e) 
+                d.show() 
+    def insert_autos(self):
+        select = self.ui.listWidget_2.selectedItems()
+        lista = []
+        for sel in select:
+            item = QtGui.QListWidgetItem(sel).text()
+            lista.append(item[:4]) 
+        sala = str(self.ui.comboBox_6.itemText(self.ui.comboBox_6.currentIndex()))[:4]
+        global logs
+        login = logs
+        if len(lista) > 0:
+            for li in lista:
+                sql = ''' select sala_id,usuario_id from autos
+                    where sala_id = %d and usuario_id = %d ''' % (int(sala),int(li))
+                procura = select_banco_str(sql)
+                if len(procura) > 0:
+                    d = dialog(self)
+                    d.ui.label.setText(u"Autorização já existente para usuário %d!" % int(li))
+                    d.show()
+                else:
+                    sql = ''' insert into autos(sala_id,usuario_id,login_id) values(%d,%d,%d) ''' % (int(sala),int(li),int(login))
+                    try:
+                        insert_banco(sql)
+                        d = dialog(self)
+                        d.ui.label.setText(u"Autorização realizada com sucesso para usuário %d!" % int(li))
+                        d.show()
+                    except psycopg2.Error:
+                        d = dialog(self)
+                        d.ui.label.setText(u"Impossivel registrar autorização para %d!" % int(li))
+                        d.show()  
+            self.tabela_autos()      
     def tabela_autos(self):
         self.ui.tableWidget_3.clear()
         if len(self.ui.lineEdit_4.text()) > 0:
@@ -509,7 +583,7 @@ class nivel2(QtGui.QMainWindow):
                     item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
                     self.ui.tableWidget_3.setItem(i,j,item)
                     if len(texto) > maior: maior = len(texto)
-                self.ui.tableWidget_3.setColumnWidth(j,(maior*8))  
+                self.ui.tableWidget_3.setColumnWidth(j,(maior*6))  
         else: 
             self.ui.tableWidget.clear()
             self.ui.tableWidget.setRowCount(0)
