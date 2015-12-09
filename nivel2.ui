@@ -262,7 +262,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>-79</y>
+         <y>-19</y>
          <width>564</width>
          <height>295</height>
         </rect>
@@ -311,7 +311,7 @@
            <enum>QTabWidget::West</enum>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="tab">
            <property name="sizePolicy">
@@ -515,6 +515,168 @@
               <property name="text">
                <string>Excluir</string>
               </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tab_3">
+           <attribute name="title">
+            <string>Salas</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_6">
+            <item row="2" column="9">
+             <widget class="QPushButton" name="pushButton_8">
+              <property name="text">
+               <string>Add. Sala</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1" colspan="2">
+             <widget class="QLabel" name="label_13">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Sala:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="6" colspan="4">
+             <widget class="QListWidget" name="listWidget_3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>1</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="3" colspan="7">
+             <widget class="QComboBox" name="comboBox_7"/>
+            </item>
+            <item row="0" column="1" colspan="2">
+             <widget class="QLabel" name="label_12">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Prédio:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1" colspan="5">
+             <widget class="QTableWidget" name="tableWidget_4">
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+              <attribute name="horizontalHeaderStretchLastSection">
+               <bool>true</bool>
+              </attribute>
+              <attribute name="verticalHeaderVisible">
+               <bool>false</bool>
+              </attribute>
+             </widget>
+            </item>
+            <item row="7" column="1" colspan="5">
+             <widget class="QPushButton" name="pushButton_7">
+              <property name="text">
+               <string>Excluir Sala</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="6" colspan="2">
+             <widget class="QPushButton" name="pushButton_11">
+              <property name="minimumSize">
+               <size>
+                <width>1</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Add. Cópia</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="8" colspan="2">
+             <widget class="QPushButton" name="pushButton_10">
+              <property name="minimumSize">
+               <size>
+                <width>3</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Excluir Cópia</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="3" colspan="2">
+             <widget class="QLineEdit" name="lineEdit_5"/>
+            </item>
+            <item row="5" column="1" colspan="2">
+             <widget class="QLabel" name="label_14">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Filtra Sala:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="3" rowspan="2" colspan="7">
+             <widget class="QLineEdit" name="lineEdit_6"/>
+            </item>
+            <item row="2" column="5">
+             <widget class="QLabel" name="label_15">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Direito:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="6" colspan="3">
+             <widget class="QComboBox" name="comboBox_8">
+              <item>
+               <property name="text">
+                <string>Nenhum</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Todos Prof.</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Todos Alunos</string>
+               </property>
+              </item>
              </widget>
             </item>
            </layout>

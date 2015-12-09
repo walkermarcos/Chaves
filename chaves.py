@@ -470,6 +470,10 @@ class nivel2(QtGui.QMainWindow):
         self.preenche_usuarios()
         self.lista_usuarios()
         self.tabela_autos()
+        self.tabela_salas()
+        self.ui.pushButton_7.setEnabled(False)
+        self.ui.pushButton_10.setEnabled(False)
+        self.ui.pushButton_11.setEnabled(False)
         timer = QTimer(self)
         timer2 = QTimer(self)
         QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha)  
@@ -483,15 +487,190 @@ class nivel2(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL("clicked()"),self.add_user)
         QtCore.QObject.connect(self.ui.pushButton_5,QtCore.SIGNAL("clicked()"),self.insert_autos)
         QtCore.QObject.connect(self.ui.pushButton_6,QtCore.SIGNAL("clicked()"),self.exclui_autos)
+        QtCore.QObject.connect(self.ui.pushButton_8,QtCore.SIGNAL("clicked()"),self.insert_sala)
+        QtCore.QObject.connect(self.ui.pushButton_7,QtCore.SIGNAL("clicked()"),self.exclui_sala)
+        QtCore.QObject.connect(self.ui.pushButton_11,QtCore.SIGNAL("clicked()"),self.insert_copia)
+        QtCore.QObject.connect(self.ui.pushButton_10,QtCore.SIGNAL("clicked()"),self.exclui_copia)
         QtCore.QObject.connect(timer2,QtCore.SIGNAL("timeout()"),self.tabela_retiradas)
         QtCore.QObject.connect(timer,QtCore.SIGNAL("timeout()"),self.lista_logins)
         self.ui.lineEdit.textChanged.connect(self.preenche_usuarios)
         self.ui.lineEdit_2.textChanged.connect(self.tabela_retiradas)
         self.ui.tableWidget_2.doubleClicked.connect(self.lista_user)
+        self.ui.tableWidget_4.itemSelectionChanged.connect(self.lista_copias)
         self.ui.lineEdit_3.textChanged.connect(self.lista_usuarios)
         self.ui.lineEdit_4.textChanged.connect(self.tabela_autos)
+        self.ui.lineEdit_6.textChanged.connect(self.tabela_salas)
         timer.start(5000)
         timer2.start(15000) 
+    def exclui_copia(self):
+        d = dialog3(self)
+        d.ui.label.setText(u"A exclusão de autorizações é permanente e não pode ser desfeita.")
+        d.show()
+        self.connect(d.ui.pushButton,QtCore.SIGNAL('clicked()'),self.excluic)
+    def excluic(self):
+        select = self.ui.tableWidget_4.selectedItems()
+        lista = []
+        for sel in select:
+            item = QtGui.QTableWidgetItem(sel).text()
+            lista.append(item)
+        if len(lista) > 0:
+            sala = int(lista[0][0])
+            sql = ''' select id,nro_copia from chaves
+            where sala_id = %d 
+            order by nro_copia''' % sala
+            chaves = select_banco_str(sql)
+            maior = 0
+            for ch in chaves:
+                if maior < ch[1]:
+                    maior = ch[1]
+                    chave_id = ch[0]
+            sql = ''' delete from chaves where id = %d''' % int(chave_id)
+            try:
+                insert_banco(sql)
+                self.lista_copias()
+            except psycopg2.Error:
+                d = dialog(self)
+                d.ui.label.setText(u"Não foi possível excluir cópia,contate administrador do sistema!")
+                d.show()
+    def insert_copia(self):
+        select = self.ui.tableWidget_4.selectedItems()
+        lista = []
+        for sel in select:
+            item = QtGui.QTableWidgetItem(sel).text()
+            lista.append(item)
+        if len(lista) > 0:
+            sala = int(lista[0][0])
+            sql = ''' select nro_copia from chaves
+            where sala_id = %d 
+            order by nro_copia''' % sala
+            chaves = select_banco_str(sql)
+            maior = 0
+            if len(chaves) > 0:
+                for ch in chaves:
+                    if maior < ch[0]:
+                        maior = ch[0]      
+            else: maior = 0     
+            sql = ''' insert into chaves(nro_copia,sala_id) values(%d,%d)''' % ((maior+1),sala)
+            try:
+                insert_banco(sql)
+                self.lista_copias()
+            except psycopg2.Error:
+                d = dialog(self)
+                d.ui.label.setText(u"Não foi possível cadastrar cópia,contate administrador do sistema!")
+                d.show()
+    def lista_copias(self):
+        self.ui.pushButton_7.setEnabled(True)
+        self.ui.pushButton_11.setEnabled(True)
+        self.ui.listWidget_3.clear()
+        select = self.ui.tableWidget_4.selectedItems()
+        lista = []
+        for sel in select:
+            item = QtGui.QTableWidgetItem(sel).text()
+            lista.append(item)
+        if len(lista) > 0:
+            sala = int(lista[0][0])
+            sql = ''' select id,nro_copia from chaves
+            where sala_id = %d 
+            order by nro_copia''' % sala
+            chaves = select_banco_str(sql)
+            if len(chaves) > 0:
+                for ch in chaves:
+                    texto = '%2d - Cópia %d' % ch
+                    item = QtGui.QListWidgetItem(texto.decode('utf-8'))
+                    self.ui.listWidget_3.addItem(item)
+                self.ui.pushButton_10.setEnabled(True)
+            else:
+                self.ui.pushButton_10.setEnabled(False)
+                self.ui.lineEdit_3.clear()
+    def exclui_sala(self):
+        d = dialog3(self)
+        d.ui.label.setText(u"A exclusão de autorizações é permanente e não pode ser desfeita.")
+        d.show()
+        self.connect(d.ui.pushButton,QtCore.SIGNAL('clicked()'),self.excluis)
+    def excluis(self):
+        select = self.ui.tableWidget_4.selectedItems()
+        lista = []
+        for sel in select:
+            item = QtGui.QTableWidgetItem(sel).text()
+            lista.append(item)
+        if len(lista) > 0:
+            sala = int(lista[0][0])
+            sql = ''' delete from salas where id = %d ''' % sala
+            try:
+                insert_banco(sql)
+                d = dialog(self)
+                d.ui.label.setText(u"Sala Excluida!")
+                d.show()
+                self.tabela_salas()
+            except psycopg2.IntegrityError:
+                d = dialog(self)
+                d.ui.label.setText(u"Não foi possível excluir a sala,existem cópias para ela!")
+                d.show()
+    def tabela_salas(self):
+        self.ui.tableWidget_4.clear()
+        predio = self.ui.comboBox_7.itemText(self.ui.comboBox_7.currentIndex())[:3]
+        if len(self.ui.lineEdit_6.text()) > 0:
+            filtro = str(self.ui.lineEdit_6.text())
+            sql = ''' select id,nome,direito from salas
+            where upper(nome) like '%s%%' and predio_id = %d
+            order by nome ''' % (filtro.upper(),int(predio))
+        else:
+            sql = ''' select id,nome,direito from salas
+                    where predio_id = %d
+                    order by nome ''' % int(predio)
+        salas = select_banco_str(sql)
+        colunas = [' ID ','Nome','Direito'] 
+        if len(salas) > 0:
+            self.ui.tableWidget_4.setRowCount(len(salas))
+            self.ui.tableWidget_4.setColumnCount(len(colunas))         
+            for j in range(len(colunas)):
+                item2 = QtGui.QTableWidgetItem(colunas[j])
+                self.ui.tableWidget_4.setHorizontalHeaderItem(j,item2)
+                maior = len(colunas[j])
+                for i in range(len(salas)):
+                    if salas[i][j] == 'p': texto = 'Todos Professores'
+                    elif salas[i][j] == 'a': texto = 'Todos Alunos'
+                    elif salas[i][j] == None: texto = ''
+                    else:
+                        texto = str(salas[i][j])
+                    item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
+                    self.ui.tableWidget_4.setItem(i,j,item)
+                    if len(texto) > maior: maior = len(texto)
+                self.ui.tableWidget_4.setColumnWidth(j,(maior*6))  
+        else: 
+            self.ui.tableWidget_4.clear()
+            self.ui.tableWidget_4.setRowCount(0)
+            self.ui.tableWidget_4.setColumnCount(0)  
+    def insert_sala(self):
+        nome = self.ui.lineEdit_5.text()
+        predio = self.ui.comboBox_7.itemText(self.ui.comboBox_7.currentIndex())[:3]
+        if self.ui.comboBox_8.currentIndex() == 2:
+            direito = 'a'
+        elif self.ui.comboBox_8.currentIndex() == 1:
+            direito = 'p'
+        else:
+            direito = ''
+        sql = ''' select nome from salas
+                where upper(nome) = '%s' and predio_id = %d ''' % (str(nome).upper(),int(predio))
+        verifica = select_banco_str(sql)
+        if len(verifica) > 0:
+            d = dialog(self)
+            d.ui.label.setText(u"Sala %s já cadastrada" % verifica[0][0])
+            d.show()
+        else:
+            sql = ''' insert into salas(nome,predio_id,direito) values('%s',%d,'%s')''' % (str(nome).upper(),int(predio),str(direito))  
+            try:
+                insert_banco(sql)
+                d = dialog(self)
+                d.ui.label.setText(u"Sala Cadastrada com sucesso!")
+                d.show()
+                self.tabela_salas()
+                self.ui.lineEdit_5.clear()
+                self.ui.comboBox_8.setCurrentIndex(0)
+            except psycopg2.Error:
+                d = dialog(self)
+                d.ui.label.setText(u"Problema ao cadastrar a sala,contate administrador do sistema!")
+                d.show()
     def exclui_autos(self):
         select = self.ui.tableWidget_3.selectedItems()
         lista = []
@@ -585,9 +764,9 @@ class nivel2(QtGui.QMainWindow):
                     if len(texto) > maior: maior = len(texto)
                 self.ui.tableWidget_3.setColumnWidth(j,(maior*6))  
         else: 
-            self.ui.tableWidget.clear()
-            self.ui.tableWidget.setRowCount(0)
-            self.ui.tableWidget.setColumnCount(0)   
+            self.ui.tableWidget_3.clear()
+            self.ui.tableWidget_3.setRowCount(0)
+            self.ui.tableWidget_3.setColumnCount(0)   
     def lista_usuarios(self):
         self.ui.listWidget_2.clear()
         if len(self.ui.lineEdit_3.text()) > 0:
@@ -764,12 +943,15 @@ class nivel2(QtGui.QMainWindow):
         self.ui.comboBox_3.setCurrentIndex(mes_atual)
     def preenche_pred(self):
         self.ui.comboBox.clear()
+        self.ui.comboBox_5.clear()
+        self.ui.comboBox_7.clear()
         sql = 'select * from predios'
         pred = select_banco_str(sql)
         for p in pred:
             text = "%2d - %s" % p
             self.ui.comboBox.addItem(text.decode('utf-8'))
             self.ui.comboBox_5.addItem(text.decode('utf-8')) 
+            self.ui.comboBox_7.addItem(text.decode('utf-8')) 
         self.preenche_sala()       
     def tabela_retiradas(self):
         self.ui.tableWidget.clear()
