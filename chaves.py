@@ -624,7 +624,7 @@ class nivel2(QtGui.QMainWindow):
             item = QtGui.QTableWidgetItem(sel).text()
             lista.append(item)
         if len(lista) > 0:
-            sala = int(lista[0][0])
+            sala = int(lista[0])
             sql = ''' select id,nro_copia from chaves
             where sala_id = %d 
             order by nro_copia''' % sala
@@ -649,7 +649,7 @@ class nivel2(QtGui.QMainWindow):
             item = QtGui.QTableWidgetItem(sel).text()
             lista.append(item)
         if len(lista) > 0:
-            sala = int(lista[0][0])
+            sala = int(lista[0])
             sql = ''' select nro_copia from chaves
             where sala_id = %d 
             order by nro_copia''' % sala
@@ -678,7 +678,7 @@ class nivel2(QtGui.QMainWindow):
             item = QtGui.QTableWidgetItem(sel).text()
             lista.append(item)
         if len(lista) > 0:
-            sala = int(lista[0][0])
+            sala = int(lista[0])
             sql = ''' select id,nro_copia from chaves
             where sala_id = %d 
             order by nro_copia''' % sala
@@ -703,15 +703,24 @@ class nivel2(QtGui.QMainWindow):
         for sel in select:
             item = QtGui.QTableWidgetItem(sel).text()
             lista.append(item)
-        if len(lista) > 0:
-            sala = int(lista[0][0])
+        i = 0
+        excs = []
+        if len(lista) > 3:
+            while i < len(lista):
+                excs.append(lista[i])
+                i += 3
+        elif len(lista) == 3: excs.append(lista[0])
+        for e in excs:    
+            sala = int(e)
             sql = ''' delete from salas where id = %d ''' % sala
             try:
                 insert_banco(sql)
                 d = dialog(self)
-                d.ui.label.setText(u"Sala Excluida!")
+                d.ui.label.setText(u"Sala %d Excluida!" % sala)
                 d.show()
                 self.tabela_salas()
+                self.tabela_predios()
+                self.preenche_sala()
             except psycopg2.IntegrityError:
                 d = dialog(self)
                 d.ui.label.setText(u"Não foi possível excluir a sala,existem cópias para ela!")
@@ -780,6 +789,8 @@ class nivel2(QtGui.QMainWindow):
                 self.tabela_salas()
                 self.ui.lineEdit_5.clear()
                 self.ui.comboBox_8.setCurrentIndex(0)
+                self.tabela_predios()
+                self.preenche_sala()
             except psycopg2.Error:
                 d = dialog(self)
                 d.ui.label.setText(u"Problema ao cadastrar a sala,contate administrador do sistema!")
@@ -798,7 +809,7 @@ class nivel2(QtGui.QMainWindow):
                 exca.append(int(lista[i]))
                 i += 4
         else:
-            exca.append(int(lista[i]))
+            exca.append(int(lista[0]))
         if len(exca) > 0:
             d = dialog3(self)
             d.ui.label.setText(u"A exclusão de autorizações é permanente e não pode ser desfeita.")
