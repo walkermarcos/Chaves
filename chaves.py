@@ -525,7 +525,7 @@ class nivel2(QtGui.QMainWindow):
     def add_predio(self):
         nome = self.ui.lineEdit_7.text()
         sql = '''select nome from predios
-            where upper(nome) = '%s' ''' % nome
+            where upper(nome) = '%s' ''' % str(nome).upper()
         verifica = select_banco_str(sql)
         if len(verifica) > 0:
             d = dialog(self)
