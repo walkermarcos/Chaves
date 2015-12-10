@@ -471,9 +471,12 @@ class nivel2(QtGui.QMainWindow):
         self.lista_usuarios()
         self.tabela_autos()
         self.tabela_salas()
+        self.tabela_predios()
         self.ui.pushButton_7.setEnabled(False)
         self.ui.pushButton_10.setEnabled(False)
         self.ui.pushButton_11.setEnabled(False)
+        self.ui.pushButton_9.setEnabled(False)
+        self.ui.pushButton_12.setEnabled(False)
         timer = QTimer(self)
         timer2 = QTimer(self)
         QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha)  
@@ -482,6 +485,7 @@ class nivel2(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.comboBox_3,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas)
         QtCore.QObject.connect(self.ui.comboBox_4,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_retiradas)
         QtCore.QObject.connect(self.ui.comboBox_5,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.preenche_sala)
+        QtCore.QObject.connect(self.ui.comboBox_7,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.tabela_salas)
         QtCore.QObject.connect(self.ui.pushButton_4,QtCore.SIGNAL('clicked()'),self.exclui_retiradas)  
         QtCore.QObject.connect(self.ui.pushButton_3,QtCore.SIGNAL("clicked()"),self.exclui_usuarios)
         QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL("clicked()"),self.add_user)
@@ -491,17 +495,123 @@ class nivel2(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.pushButton_7,QtCore.SIGNAL("clicked()"),self.exclui_sala)
         QtCore.QObject.connect(self.ui.pushButton_11,QtCore.SIGNAL("clicked()"),self.insert_copia)
         QtCore.QObject.connect(self.ui.pushButton_10,QtCore.SIGNAL("clicked()"),self.exclui_copia)
+        QtCore.QObject.connect(self.ui.pushButton_12,QtCore.SIGNAL("clicked()"),self.exclui_predio)
+        QtCore.QObject.connect(self.ui.pushButton_9,QtCore.SIGNAL("clicked()"),self.add_predio)
         QtCore.QObject.connect(timer2,QtCore.SIGNAL("timeout()"),self.tabela_retiradas)
         QtCore.QObject.connect(timer,QtCore.SIGNAL("timeout()"),self.lista_logins)
         self.ui.lineEdit.textChanged.connect(self.preenche_usuarios)
         self.ui.lineEdit_2.textChanged.connect(self.tabela_retiradas)
+        self.ui.lineEdit_7.textChanged.connect(self.abilita_add)
+        self.ui.lineEdit_8.textChanged.connect(self.tabela_predios)
         self.ui.tableWidget_2.doubleClicked.connect(self.lista_user)
         self.ui.tableWidget_4.itemSelectionChanged.connect(self.lista_copias)
+        self.ui.tableWidget_5.itemSelectionChanged.connect(self.abilita_exlusao)
         self.ui.lineEdit_3.textChanged.connect(self.lista_usuarios)
         self.ui.lineEdit_4.textChanged.connect(self.tabela_autos)
         self.ui.lineEdit_6.textChanged.connect(self.tabela_salas)
         timer.start(5000)
         timer2.start(15000) 
+    def abilita_add(self):
+        if len(self.ui.lineEdit_7.text()) > 0:
+            self.ui.pushButton_9.setEnabled(True)
+        else:
+            self.ui.pushButton_9.setEnabled(False)    
+    def abilita_exlusao(self):
+        select = self.ui.tableWidget_5.selectedItems()
+        if len(select) > 0:
+            self.ui.pushButton_12.setEnabled(True)
+        else:
+            self.ui.pushButton_12.setEnabled(False)    
+    def add_predio(self):
+        nome = self.ui.lineEdit_7.text()
+        sql = '''select nome from predios
+            where upper(nome) = '%s' ''' % nome
+        verifica = select_banco_str(sql)
+        if len(verifica) > 0:
+            d = dialog(self)
+            d.ui.label.setText(u"Prédio já cadastrado com esse nome!")
+            d.show()
+        else:
+            sql = ''' insert into predios(nome) values('%s')''' % nome
+            if len(nome) > 0:    
+                try:
+                    insert_banco(sql)
+                    d = dialog(self)
+                    d.ui.label.setText(u"Prédio incluido com sucesso!")
+                    d.show()
+                    self.tabela_predios()
+                    self.preenche_pred()
+                    self.ui.lineEdit_7.clear()
+                except psycopg2.Error:
+                    d = dialog(self)
+                    d.ui.label.setText(u"Não foi possível incluir,contate administrador!")
+                    d.show()            
+    def exclui_predio(self):
+        d = dialog3(self)
+        d.ui.label.setText(u"A exclusão de prédios é permanente e não pode ser desfeita.")
+        d.show()
+        self.connect(d.ui.pushButton,QtCore.SIGNAL('clicked()'),self.excluip)
+    def excluip(self):
+        select = self.ui.tableWidget_5.selectedItems()
+        lista = []
+        for sel in select:
+            item = QtGui.QTableWidgetItem(sel).text()
+            lista.append(item)
+        i = 0
+        excp = []
+        if len(lista) > 3:
+            while i < len(lista):
+                excp.append(lista[i])
+                i += 3
+        elif len(lista) == 3: excp.append(lista[0])
+        if len(excp) > 0:
+            for e in excp:
+                sql = ''' delete from predios where id = %d ''' % int(e)
+                try:
+                    insert_banco(sql)
+                    d = dialog(self)
+                    d.ui.label.setText(u"Prédio %d excluido!" % int(e))
+                    d.show()
+                    self.tabela_predios()
+                    self.preenche_pred()
+                except psycopg2.IntegrityError:
+                    d = dialog(self)
+                    d.ui.label.setText(u"Não foi possível excluir o prédio %s,existem salas cadastradas!" % int(e))
+                    d.show()
+    def tabela_predios(self):
+        self.ui.tableWidget_5.clear()
+        if len(self.ui.lineEdit_8.text()) > 0:
+            filtro = str(self.ui.lineEdit_8.text())
+            sql = ''' select id,nome from predios 
+                where upper(nome) like '%s%%'
+                order by nome''' % filtro.upper()
+        else:
+            sql = ''' select id,nome from predios
+                    order by nome'''
+        predios = select_banco_str(sql)
+        colunas = [' ID ','Nome','Nro.Salas']
+        if len(predios) > 0:
+            self.ui.tableWidget_5.setRowCount(len(predios))
+            self.ui.tableWidget_5.setColumnCount(len(colunas))         
+            for j in range(len(colunas)):
+                item2 = QtGui.QTableWidgetItem(colunas[j])
+                self.ui.tableWidget_5.setHorizontalHeaderItem(j,item2)
+                maior = len(colunas[j])
+                for i in range(len(predios)):
+                    sql = '''select nome from salas where predio_id = %d''' % predios[i][0]
+                    salas = select_banco_str(sql)
+                    nro_salas = len(salas)
+                    if j == 2:
+                        texto = str(nro_salas)
+                    else:    texto = str(predios[i][j])
+                    item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
+                    self.ui.tableWidget_5.setItem(i,j,item)
+                    if len(texto) > maior: maior = len(texto)
+                self.ui.tableWidget_5.setColumnWidth(j,(maior*6))  
+        else: 
+            self.ui.tableWidget_5.clear()
+            self.ui.tableWidget_5.setRowCount(0)
+            self.ui.tableWidget_5.setColumnCount(0)
     def exclui_copia(self):
         d = dialog3(self)
         d.ui.label.setText(u"A exclusão de cópias é permanente e não pode ser desfeita.")
@@ -615,32 +725,35 @@ class nivel2(QtGui.QMainWindow):
             where upper(nome) like '%s%%' and predio_id = %d
             order by nome ''' % (filtro.upper(),int(predio))
         else:
-            sql = ''' select id,nome,direito from salas
-                    where predio_id = %d
-                    order by nome ''' % int(predio)
-        salas = select_banco_str(sql)
-        colunas = [' ID ','Nome','Direito'] 
-        if len(salas) > 0:
-            self.ui.tableWidget_4.setRowCount(len(salas))
-            self.ui.tableWidget_4.setColumnCount(len(colunas))         
-            for j in range(len(colunas)):
-                item2 = QtGui.QTableWidgetItem(colunas[j])
-                self.ui.tableWidget_4.setHorizontalHeaderItem(j,item2)
-                maior = len(colunas[j])
-                for i in range(len(salas)):
-                    if salas[i][j] == 'p': texto = 'Todos Professores'
-                    elif salas[i][j] == 'a': texto = 'Todos Alunos'
-                    elif salas[i][j] == None: texto = ''
-                    else:
-                        texto = str(salas[i][j])
-                    item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
-                    self.ui.tableWidget_4.setItem(i,j,item)
-                    if len(texto) > maior: maior = len(texto)
-                self.ui.tableWidget_4.setColumnWidth(j,(maior*6))  
-        else: 
-            self.ui.tableWidget_4.clear()
-            self.ui.tableWidget_4.setRowCount(0)
-            self.ui.tableWidget_4.setColumnCount(0)  
+            try:
+                sql = ''' select id,nome,direito from salas
+                        where predio_id = %d
+                        order by nome ''' % int(predio)
+                salas = select_banco_str(sql)            
+                colunas = [' ID ','Nome','Direito'] 
+                if len(salas) > 0:
+                    self.ui.tableWidget_4.setRowCount(len(salas))
+                    self.ui.tableWidget_4.setColumnCount(len(colunas))         
+                    for j in range(len(colunas)):
+                        item2 = QtGui.QTableWidgetItem(colunas[j])
+                        self.ui.tableWidget_4.setHorizontalHeaderItem(j,item2)
+                        maior = len(colunas[j])
+                        for i in range(len(salas)):
+                            if salas[i][j] == 'p': texto = 'Todos Professores'
+                            elif salas[i][j] == 'a': texto = 'Todos Alunos'
+                            elif salas[i][j] == None: texto = ''
+                            else:
+                                texto = str(salas[i][j])
+                            item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
+                            self.ui.tableWidget_4.setItem(i,j,item)
+                            if len(texto) > maior: maior = len(texto)
+                        self.ui.tableWidget_4.setColumnWidth(j,(maior*6))  
+                else: 
+                    self.ui.tableWidget_4.clear()
+                    self.ui.tableWidget_4.setRowCount(0)
+                    self.ui.tableWidget_4.setColumnCount(0) 
+            except ValueError:
+                pass 
     def insert_sala(self):
         nome = self.ui.lineEdit_5.text()
         predio = self.ui.comboBox_7.itemText(self.ui.comboBox_7.currentIndex())[:3]
@@ -781,13 +894,16 @@ class nivel2(QtGui.QMainWindow):
             item = QtGui.QListWidgetItem(texto.decode('utf-8'))
             self.ui.listWidget_2.addItem(item)
     def preenche_sala(self):
-        self.ui.comboBox_6.clear()
-        predio = int(self.ui.comboBox_5.itemText(self.ui.comboBox_5.currentIndex())[:3])
-        sql = ''' select id,nome from salas where predio_id = %d order by nome''' % predio
-        salas = select_banco_str(sql)
-        for sala in salas:
-            texto = "%3d - %s" % sala
-            self.ui.comboBox_6.addItem(texto.decode('utf-8'))
+        try:
+            self.ui.comboBox_6.clear()
+            predio = int(self.ui.comboBox_5.itemText(self.ui.comboBox_5.currentIndex())[:3])
+            sql = ''' select id,nome from salas where predio_id = %d order by nome''' % predio
+            salas = select_banco_str(sql)
+            for sala in salas:
+                texto = "%3d - %s" % sala
+                self.ui.comboBox_6.addItem(texto.decode('utf-8'))
+        except ValueError:
+            pass
     def add_user(self):
         c = cad_user(self)
         self.setVisible(False)
@@ -954,68 +1070,71 @@ class nivel2(QtGui.QMainWindow):
             self.ui.comboBox_7.addItem(text.decode('utf-8')) 
         self.preenche_sala()       
     def tabela_retiradas(self):
-        self.ui.tableWidget.clear()
-        if len(self.ui.lineEdit_2.text()) > 0:
-            filtro = str(self.ui.lineEdit_2.text())
-        else:
-            filtro = ''    
-        ano = self.ui.comboBox_4.itemText(self.ui.comboBox_4.currentIndex())
-        predio = int(self.ui.comboBox.itemText(self.ui.comboBox.currentIndex())[:3])
-        escolha = self.ui.comboBox_2.currentIndex()
-        m = (int(self.ui.comboBox_3.currentIndex()) + 1)
-        if m < 10: mes = ('0' + str(m) + '/' + str(ano))
-        else: mes = (str(m) + '/' + str(ano))   
-        if escolha == 0 : # Todas
-            sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
-            from logins l,retiradas r,salas s,usuarios u,chaves c
-            where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
-            order by r.datahora_rec desc''' % (predio,mes)
-            colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega','Data/Hora Recebimento']
-            if len(filtro) > 0:
-                sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
-            from logins l,retiradas r,salas s,usuarios u,chaves c
-            where (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%') and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
-            order by r.datahora_rec desc''' % (filtro.upper(),filtro.upper(),predio,mes)    
-        elif escolha == 1: # Em Aberto
-            sql =  '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
-            from logins l,retiradas r,salas s,usuarios u,chaves c
-            where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
-            order by r.datahora_ent desc'''   % (predio,mes)
-            colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega']
-            if len(filtro) > 0:
-                sql =  '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
-            from logins l,retiradas r,salas s,usuarios u,chaves c
-            where (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%') and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
-            order by r.datahora_ent desc'''   % (filtro.upper(),filtro.upper(),predio,mes)
-        else: # Fechadas
-            sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
-            from logins l,retiradas r,salas s,usuarios u,chaves c
-            where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and r.datahora_rec notnull and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
-            order by r.datahora_rec desc''' % (predio,mes)
-            colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega','Data/Hora Recebimento']
-            if len(filtro) > 0:
-                sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
-            from logins l,retiradas r,salas s,usuarios u,chaves c
-            where (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%') and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and r.datahora_rec notnull and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
-            order by r.datahora_rec desc''' % (filtro.upper(),filtro.upper(),predio,mes)
-        ret = select_banco_str(sql)
-        if len(ret) > 0:
-            self.ui.tableWidget.setRowCount(len(ret))
-            self.ui.tableWidget.setColumnCount(len(colunas))         
-            for j in range(len(colunas)):
-                item2 = QtGui.QTableWidgetItem(colunas[j])
-                self.ui.tableWidget.setHorizontalHeaderItem(j,item2)
-                maior = len(colunas[j])
-                for i in range(len(ret)):
-                    texto = str(ret[i][j])
-                    item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
-                    self.ui.tableWidget.setItem(i,j,item)
-                    if len(texto) > maior: maior = len(texto)
-                self.ui.tableWidget.setColumnWidth(j,(maior*8))  
-        else: 
+        try:
             self.ui.tableWidget.clear()
-            self.ui.tableWidget.setRowCount(0)
-            self.ui.tableWidget.setColumnCount(0)  
+            if len(self.ui.lineEdit_2.text()) > 0:
+                filtro = str(self.ui.lineEdit_2.text())
+            else:
+                filtro = ''    
+            ano = self.ui.comboBox_4.itemText(self.ui.comboBox_4.currentIndex())
+            predio = int(self.ui.comboBox.itemText(self.ui.comboBox.currentIndex())[:3])
+            escolha = self.ui.comboBox_2.currentIndex()
+            m = (int(self.ui.comboBox_3.currentIndex()) + 1)
+            if m < 10: mes = ('0' + str(m) + '/' + str(ano))
+            else: mes = (str(m) + '/' + str(ano))   
+            if escolha == 0 : # Todas
+                sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
+                from logins l,retiradas r,salas s,usuarios u,chaves c
+                where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
+                order by r.datahora_rec desc''' % (predio,mes)
+                colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega','Data/Hora Recebimento']
+                if len(filtro) > 0:
+                    sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
+                from logins l,retiradas r,salas s,usuarios u,chaves c
+                where (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%') and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
+                order by r.datahora_rec desc''' % (filtro.upper(),filtro.upper(),predio,mes)    
+            elif escolha == 1: # Em Aberto
+                sql =  '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
+                from logins l,retiradas r,salas s,usuarios u,chaves c
+                where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
+                order by r.datahora_ent desc'''   % (predio,mes)
+                colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega']
+                if len(filtro) > 0:
+                    sql =  '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
+                from logins l,retiradas r,salas s,usuarios u,chaves c
+                where (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%') and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull and s.predio_id = %d and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
+                order by r.datahora_ent desc'''   % (filtro.upper(),filtro.upper(),predio,mes)
+            else: # Fechadas
+                sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
+                from logins l,retiradas r,salas s,usuarios u,chaves c
+                where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and r.datahora_rec notnull and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
+                order by r.datahora_rec desc''' % (predio,mes)
+                colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega','Data/Hora Recebimento']
+                if len(filtro) > 0:
+                    sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),to_char(r.datahora_rec, 'DD/MM/YYYY hh24:mi')
+                from logins l,retiradas r,salas s,usuarios u,chaves c
+                where (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%') and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and s.predio_id = %d and r.datahora_rec notnull and to_char(r.datahora_ent, 'MM/YYYY') = '%s'
+                order by r.datahora_rec desc''' % (filtro.upper(),filtro.upper(),predio,mes)
+            ret = select_banco_str(sql)
+            if len(ret) > 0:
+                self.ui.tableWidget.setRowCount(len(ret))
+                self.ui.tableWidget.setColumnCount(len(colunas))         
+                for j in range(len(colunas)):
+                    item2 = QtGui.QTableWidgetItem(colunas[j])
+                    self.ui.tableWidget.setHorizontalHeaderItem(j,item2)
+                    maior = len(colunas[j])
+                    for i in range(len(ret)):
+                        texto = str(ret[i][j])
+                        item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
+                        self.ui.tableWidget.setItem(i,j,item)
+                        if len(texto) > maior: maior = len(texto)
+                    self.ui.tableWidget.setColumnWidth(j,(maior*8))  
+            else: 
+                self.ui.tableWidget.clear()
+                self.ui.tableWidget.setRowCount(0)
+                self.ui.tableWidget.setColumnCount(0)  
+        except ValueError:
+            pass
 
 class cad_user(QtGui.QMainWindow):
     def __init__(self,parent = None):
