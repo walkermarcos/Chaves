@@ -11,6 +11,7 @@ from receber import Ui_receber
 from conf import Ui_Conf
 from nivel2 import Ui_nivel2
 from cad_user import Ui_Cadast_user
+from cad_login import Ui_Cad_Logins
 from mhlib import isnumeric
 import datetime
 import psycopg2
@@ -472,11 +473,17 @@ class nivel2(QtGui.QMainWindow):
         self.tabela_autos()
         self.tabela_salas()
         self.tabela_predios()
+        self.tabela_logins()
         self.ui.pushButton_7.setEnabled(False)
         self.ui.pushButton_10.setEnabled(False)
         self.ui.pushButton_11.setEnabled(False)
         self.ui.pushButton_9.setEnabled(False)
         self.ui.pushButton_12.setEnabled(False)
+        self.ui.pushButton_4.setEnabled(False)
+        self.ui.pushButton_5.setEnabled(False)
+        self.ui.pushButton_6.setEnabled(False)
+        self.ui.pushButton_3.setEnabled(False)
+        self.ui.pushButton_14.setEnabled(False)
         timer = QTimer(self)
         timer2 = QTimer(self)
         QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha)  
@@ -496,21 +503,60 @@ class nivel2(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.pushButton_11,QtCore.SIGNAL("clicked()"),self.insert_copia)
         QtCore.QObject.connect(self.ui.pushButton_10,QtCore.SIGNAL("clicked()"),self.exclui_copia)
         QtCore.QObject.connect(self.ui.pushButton_12,QtCore.SIGNAL("clicked()"),self.exclui_predio)
+        QtCore.QObject.connect(self.ui.pushButton_14,QtCore.SIGNAL("clicked()"),self.exclui_logins)
         QtCore.QObject.connect(self.ui.pushButton_9,QtCore.SIGNAL("clicked()"),self.add_predio)
+        QtCore.QObject.connect(self.ui.pushButton_13,QtCore.SIGNAL("clicked()"),self.add_login)
         QtCore.QObject.connect(timer2,QtCore.SIGNAL("timeout()"),self.tabela_retiradas)
         QtCore.QObject.connect(timer,QtCore.SIGNAL("timeout()"),self.lista_logins)
         self.ui.lineEdit.textChanged.connect(self.preenche_usuarios)
         self.ui.lineEdit_2.textChanged.connect(self.tabela_retiradas)
         self.ui.lineEdit_7.textChanged.connect(self.abilita_add)
         self.ui.lineEdit_8.textChanged.connect(self.tabela_predios)
+        self.ui.lineEdit_9.textChanged.connect(self.tabela_logins)
         self.ui.tableWidget_2.doubleClicked.connect(self.lista_user)
+        self.ui.tableWidget_6.doubleClicked.connect(self.lista_login)
         self.ui.tableWidget_4.itemSelectionChanged.connect(self.lista_copias)
         self.ui.tableWidget_5.itemSelectionChanged.connect(self.abilita_exlusao)
+        self.ui.tableWidget.itemSelectionChanged.connect(self.abilita_exlusao_ret)
+        self.ui.tableWidget_2.itemSelectionChanged.connect(self.abilita_exlusao_usr)
+        self.ui.listWidget_2.itemSelectionChanged.connect(self.abilita_add_aut)
+        self.ui.tableWidget_3.itemSelectionChanged.connect(self.abilita_exlusao_aut)
+        self.ui.tableWidget_6.itemSelectionChanged.connect(self.abilita_exclusao_log)
         self.ui.lineEdit_3.textChanged.connect(self.lista_usuarios)
         self.ui.lineEdit_4.textChanged.connect(self.tabela_autos)
         self.ui.lineEdit_6.textChanged.connect(self.tabela_salas)
         timer.start(5000)
         timer2.start(15000) 
+    def abilita_exclusao_log(self):
+        select = self.ui.tableWidget_6.selectedItems()
+        if len(select) > 0:
+            self.ui.pushButton_14.setEnabled(True)
+        else:
+            self.ui.pushButton_14.setEnabled(False)
+    def abilita_exlusao_aut(self):
+        select = self.ui.tableWidget_3.selectedItems()
+        if len(select) > 0:
+            self.ui.pushButton_6.setEnabled(True)
+        else:
+            self.ui.pushButton_6.setEnabled(False)    
+    def abilita_add_aut(self):
+        select = self.ui.listWidget_2.selectedItems()
+        if len(select) > 0:
+            self.ui.pushButton_5.setEnabled(True)
+        else:
+            self.ui.pushButton_5.setEnabled(False)
+    def abilita_exlusao_usr(self):
+        select = self.ui.tableWidget_2.selectedItems()
+        if len(select) > 0:
+            self.ui.pushButton_3.setEnabled(True)
+        else:
+            self.ui.pushButton_3.setEnabled(False)
+    def abilita_exlusao_ret(self):
+        select = self.ui.tableWidget.selectedItems()
+        if len(select) > 0:
+            self.ui.pushButton_4.setEnabled(True)
+        else:
+            self.ui.pushButton_4.setEnabled(False)
     def abilita_add(self):
         if len(self.ui.lineEdit_7.text()) > 0:
             self.ui.pushButton_9.setEnabled(True)
@@ -522,6 +568,96 @@ class nivel2(QtGui.QMainWindow):
             self.ui.pushButton_12.setEnabled(True)
         else:
             self.ui.pushButton_12.setEnabled(False)    
+    def excluil(self):
+        global exclog
+        for e in exclog:
+            try:
+                sql = ''' delete from logins where id = %d ''' % int(e)
+                insert_banco(sql)
+                self.tabela_logins()
+            except psycopg2.IntegrityError:
+                d = dialog(self)
+                d.ui.label.setText(u"Não foi possivel excluir login %d,contate administrador do sistema!" % e) 
+                d.show()
+    def exclui_logins(self):
+        select = self.ui.tableWidget_6.selectedItems()
+        items = []
+        global exclog
+        if len(select) > 0:
+            for sel in select:
+                items.append(QtGui.QTableWidgetItem(sel).text())   
+            exclog = []
+            i = 0    
+            if len(items) > 3:    
+                while i < len(items):
+                    exclog.append(int(items[i]))
+                    i += 3
+            else:
+                exclog.append(int(items[0]))        
+            if len(exclog) >= 1:
+                d = dialog3(self)
+                d.ui.label.setText(u"A exclusão de Logins é permanente e não pode ser desfeita.")
+                d.show()
+                self.connect(d.ui.pushButton,QtCore.SIGNAL('clicked()'),self.excluil)
+    def lista_login(self):
+        select = self.ui.tableWidget_6.selectedItems()
+        global log_id
+        list_user = []
+        for s in select:
+            list_user.append(QtGui.QTableWidgetItem(s).text())
+        log_id = list_user[0]
+        sql = ''' select id,nome,nivel,login,senha from logins where id = %d ''' % int(log_id)
+        logins = select_banco_str(sql)
+        nome = logins[0][1]
+        nivel = logins[0][2]
+        login = logins[0][3]
+        senha = str(logins[0][4])
+        senhas = ''
+        for s in senha:
+            if s != ' ':
+                senhas += s
+        c = cad_login(self)
+        c.limpa()
+        c.ui.lineEdit.setText(str(nome).decode('utf-8'))
+        c.ui.comboBox_2.setCurrentIndex((nivel - 1))
+        c.ui.lineEdit_3.setText(login)
+        c.ui.lineEdit_4.setText(senhas)
+        c.show()
+        self.setVisible(False)    
+        self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.atualiza_login)
+        c.ui.lineEdit.setFocus()
+    def add_login(self):
+        c = cad_login(self)
+        self.setVisible(False)
+        c.show()
+        self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.add_login)
+        c.ui.lineEdit.setFocus()
+    def tabela_logins(self):
+        self.ui.tableWidget_6.clear()
+        if self.ui.lineEdit_9.text() > 0:
+            nome = str(self.ui.lineEdit_9.text())
+            sql = ''' select id,nome,nivel from logins where upper(nome) like '%s%%' order by nome''' % nome.upper()
+        else:
+            sql = ''' select id,nome,nivel from logins order by nome'''
+        users = select_banco_str(sql) 
+        colunas = [' ID ','Nome','Nivel']
+        if len(users) > 0:
+            self.ui.tableWidget_6.setRowCount(len(users))
+            self.ui.tableWidget_6.setColumnCount(len(colunas))         
+            for j in range(len(colunas)):
+                item2 = QtGui.QTableWidgetItem(colunas[j])
+                self.ui.tableWidget_6.setHorizontalHeaderItem(j,item2)
+                maior = len(colunas[j])
+                for i in range(len(users)):
+                    texto = str(users[i][j])
+                    item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
+                    self.ui.tableWidget_6.setItem(i,j,item)
+                    if len(texto) > maior: maior = len(texto)
+                self.ui.tableWidget_6.setColumnWidth(j,(maior*8))  
+        else: 
+            self.ui.tableWidget.clear()
+            self.ui.tableWidget.setRowCount(0)
+            self.ui.tableWidget.setColumnCount(0)
     def add_predio(self):
         nome = self.ui.lineEdit_7.text()
         sql = '''select nome from predios
@@ -1146,6 +1282,77 @@ class nivel2(QtGui.QMainWindow):
                 self.ui.tableWidget.setColumnCount(0)  
         except ValueError:
             pass
+
+class cad_login(QtGui.QMainWindow):
+    def __init__(self,parent = None):
+        QtGui.QWidget.__init__(self,parent)
+        self.ui = Ui_Cad_Logins()
+        self.ui.setupUi(self)             
+        QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL('clicked()'),self.fecha)
+        self.limpa()
+    def limpa(self):
+        self.ui.lineEdit.clear()
+        self.ui.comboBox_2.setCurrentIndex(0)
+        self.ui.lineEdit_3.clear()
+        self.ui.lineEdit_4.clear()
+    def add_login(self):
+        lista = []
+        lista.append(self.ui.lineEdit.text())
+        lista.append((self.ui.comboBox_2.currentIndex()+1))
+        lista.append(self.ui.lineEdit_3.text())
+        lista.append(self.ui.lineEdit_4.text())
+        sql = ''' select login from logins where login = '%s' ''' % lista[3]
+        verifica = select_banco_str(sql)
+        if len(verifica) == 0:
+            sql = ''' insert into logins (nome,nivel,login,senha) values ('%s',%d,'%s','%s') ''' % (lista[0],int(lista[1]),lista[2],
+                                                                                                     lista[3])
+            try:
+                insert_banco(sql)
+                d = dialog(self)
+                d.ui.label.setText(u"Login cadastrado com sucesso!")
+                d.show()
+                self.limpa()
+            except psycopg2.Error:
+                d = dialog(self)
+                d.ui.label.setText(u"Ocorreu um erro,contate administrador do programa!")
+                d.show()
+        else:
+            d = dialog(self)
+            d.ui.label.setText(u"Login igual encontrado!")
+            d.show()    
+    def atualiza_login(self):
+        global log_id
+        lista = []
+        lista.append(log_id)
+        lista.append(self.ui.lineEdit.text())
+        lista.append((self.ui.comboBox_2.currentIndex()+1))
+        lista.append(self.ui.lineEdit_3.text())
+        lista.append(self.ui.lineEdit_4.text())
+        sql = ''' select login from logins where login = '%s' ''' % lista[3]
+        verifica = select_banco_str(sql)
+        if len(verifica) == 0:
+            sql = ''' update logins set nome = '%s',nivel = %d,login = '%s',senha = '%s' where id = %d ''' % (lista[1],int(lista[2]),
+                                                                                                            lista[3],lista[4],int(lista[0]))  
+            try:
+                insert_banco(sql)
+                d = dialog(self)
+                d.ui.label.setText(u"Alteração feita com sucesso!")
+                d.show()
+                self.limpa()
+            except psycopg2.Error:
+                d = dialog(self)
+                d.ui.label.setText(u"Não foi possível realizar a alteração desejada.!")
+                d.show()
+        else:
+            d = dialog(self)
+            d.ui.label.setText(u"Login já cadastrado igual!")
+            d.show()
+    def fecha(self):
+        n = nivel2(self)
+        self.close()
+        n.setVisible(True)
+        n.ui.toolBox.setCurrentIndex(1)
+        n.ui.tabWidget.setCurrentIndex(4)
 
 class cad_user(QtGui.QMainWindow):
     def __init__(self,parent = None):
