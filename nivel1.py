@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nivel1.ui'
 #
-# Created: Wed Dec  9 10:19:36 2015
+# Created: Fri Dec 11 13:08:46 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -51,6 +51,8 @@ class Ui_Nivel1(object):
         self.label = QtGui.QLabel(self.centralwidget)
         self.label.setObjectName(_fromUtf8("label"))
         self.gridLayout.addWidget(self.label, 0, 0, 1, 3)
+        spacerItem = QtGui.QSpacerItem(642, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem, 1, 0, 1, 5)
         self.label_2 = QtGui.QLabel(self.centralwidget)
         font = QtGui.QFont()
         font.setFamily(_fromUtf8("Noto Sans [unknown]"))
@@ -61,8 +63,6 @@ class Ui_Nivel1(object):
         self.label_2.setFont(font)
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.gridLayout.addWidget(self.label_2, 0, 3, 1, 1)
-        spacerItem = QtGui.QSpacerItem(642, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem, 1, 0, 1, 5)
         self.label_3 = QtGui.QLabel(self.centralwidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -94,8 +94,6 @@ class Ui_Nivel1(object):
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.tableWidget.verticalHeader().setVisible(False)
         self.gridLayout.addWidget(self.tableWidget, 3, 0, 1, 5)
-        spacerItem1 = QtGui.QSpacerItem(642, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem1, 4, 0, 1, 5)
         self.but_entr = QtGui.QPushButton(self.centralwidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -103,13 +101,15 @@ class Ui_Nivel1(object):
         sizePolicy.setHeightForWidth(self.but_entr.sizePolicy().hasHeightForWidth())
         self.but_entr.setSizePolicy(sizePolicy)
         self.but_entr.setObjectName(_fromUtf8("but_entr"))
-        self.gridLayout.addWidget(self.but_entr, 5, 0, 1, 2)
+        self.gridLayout.addWidget(self.but_entr, 4, 0, 1, 2)
         self.but_rec = QtGui.QPushButton(self.centralwidget)
         self.but_rec.setObjectName(_fromUtf8("but_rec"))
-        self.gridLayout.addWidget(self.but_rec, 5, 2, 1, 2)
+        self.gridLayout.addWidget(self.but_rec, 4, 2, 1, 2)
         self.but_sair = QtGui.QPushButton(self.centralwidget)
         self.but_sair.setObjectName(_fromUtf8("but_sair"))
-        self.gridLayout.addWidget(self.but_sair, 5, 4, 1, 1)
+        self.gridLayout.addWidget(self.but_sair, 4, 4, 1, 1)
+        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem1, 5, 0, 1, 5)
         Nivel1.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(Nivel1)

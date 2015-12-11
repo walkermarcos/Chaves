@@ -1301,7 +1301,7 @@ class cad_login(QtGui.QMainWindow):
         lista.append((self.ui.comboBox_2.currentIndex()+1))
         lista.append(self.ui.lineEdit_3.text())
         lista.append(self.ui.lineEdit_4.text())
-        sql = ''' select login from logins where login = '%s' ''' % lista[3]
+        sql = ''' select login from logins where login = '%s' ''' % lista[2]
         verifica = select_banco_str(sql)
         if len(verifica) == 0:
             sql = ''' insert into logins (nome,nivel,login,senha) values ('%s',%d,'%s','%s') ''' % (lista[0],int(lista[1]),lista[2],
@@ -1328,9 +1328,22 @@ class cad_login(QtGui.QMainWindow):
         lista.append((self.ui.comboBox_2.currentIndex()+1))
         lista.append(self.ui.lineEdit_3.text())
         lista.append(self.ui.lineEdit_4.text())
-        sql = ''' select login from logins where login = '%s' ''' % lista[3]
+        login_nome = str(lista[3])
+        i = 0
+        while len(login_nome) < 20:
+            login_nome += ' '
+            i += 1
+        sql = ''' select id,login from logins where login = '%s' ''' % login_nome
         verifica = select_banco_str(sql)
-        if len(verifica) == 0:
+        prosegue = False
+        if len(verifica) > 0:
+            for v in verifica:
+                if v[0] != int(lista[0]) and v[1] == login_nome:
+                    prosegue = False
+                    break
+                else: prosegue = True
+        else: prosegue = True            
+        if prosegue == True:            
             sql = ''' update logins set nome = '%s',nivel = %d,login = '%s',senha = '%s' where id = %d ''' % (lista[1],int(lista[2]),
                                                                                                             lista[3],lista[4],int(lista[0]))  
             try:
@@ -1345,8 +1358,8 @@ class cad_login(QtGui.QMainWindow):
                 d.show()
         else:
             d = dialog(self)
-            d.ui.label.setText(u"Login já cadastrado igual!")
-            d.show()
+            d.ui.label.setText(u"Login igual encontrado!")
+            d.show() 
     def fecha(self):
         n = nivel2(self)
         self.close()
