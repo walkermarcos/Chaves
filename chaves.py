@@ -237,9 +237,13 @@ class nivel1(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.but_sair,QtCore.SIGNAL('clicked()'),self.fecha) 
         QtCore.QObject.connect(self.ui.but_entr,QtCore.SIGNAL('clicked()'),self.entrega)  
         QtCore.QObject.connect(self.ui.but_rec,QtCore.SIGNAL('clicked()'),self.receberc)   
+        self.connect(self, QtCore.SIGNAL('triggered()'),self.fecha)
         self.ui.tableWidget.doubleClicked.connect(self.recebers)      
         self.preenche_lista()
         self.ui.lineEdit.textChanged.connect(self.preenche_lista)
+        self.ui.statusBar.showMessage(u"Recomendação do desenvolvedor: Nunca feche uma janela usando o X do canto superior direito!")
+    def closeEvent(self,event):
+        self.close()
     def recebers(self):
         select = self.ui.tableWidget.selectedItems()
         items = []
@@ -484,6 +488,7 @@ class nivel2(QtGui.QMainWindow):
         self.ui.pushButton_6.setEnabled(False)
         self.ui.pushButton_3.setEnabled(False)
         self.ui.pushButton_14.setEnabled(False)
+        self.ui.pushButton_8.setEnabled(False)
         timer = QTimer(self)
         timer2 = QTimer(self)
         QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha)  
@@ -525,8 +530,16 @@ class nivel2(QtGui.QMainWindow):
         self.ui.lineEdit_3.textChanged.connect(self.lista_usuarios)
         self.ui.lineEdit_4.textChanged.connect(self.tabela_autos)
         self.ui.lineEdit_6.textChanged.connect(self.tabela_salas)
+        self.ui.lineEdit_5.textChanged.connect(self.abilita_add_sala)
+        self.ui.statusBar.showMessage(u"Recomendação do desenvolvedor: Nunca feche uma janela usando o X do canto superior direito!")
         timer.start(5000)
         timer2.start(15000) 
+    def abilita_add_sala(self):
+        tamanho = len(self.ui.lineEdit_5.text())
+        if tamanho > 0:
+            self.ui.pushButton_8.setEnabled(True)
+        else:
+            self.ui.pushButton_8.setEnabled(False)
     def abilita_exclusao_log(self):
         select = self.ui.tableWidget_6.selectedItems()
         if len(select) > 0:
@@ -661,7 +674,7 @@ class nivel2(QtGui.QMainWindow):
     def add_predio(self):
         nome = self.ui.lineEdit_7.text()
         sql = '''select nome from predios
-            where upper(nome) = '%s' ''' % str(nome).upper()
+            where nome = '%s' ''' % nome
         verifica = select_banco_str(sql)
         if len(verifica) > 0:
             d = dialog(self)
@@ -1165,7 +1178,14 @@ class nivel2(QtGui.QMainWindow):
                 self.ui.tableWidget_2.setHorizontalHeaderItem(j,item2)
                 maior = len(colunas[j])
                 for i in range(len(users)):
-                    texto = str(users[i][j])
+                    if j == 5:
+                        if str(users[i][j]) == 'p':
+                            texto = 'Professor'
+                        elif str(users[i][j]) == 'a':
+                            texto = 'Aluno'
+                        else: texto = 'Servidor'
+                    else:    
+                        texto = str(users[i][j])
                     item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
                     self.ui.tableWidget_2.setItem(i,j,item)
                     if len(texto) > maior: maior = len(texto)
@@ -1387,19 +1407,27 @@ class cad_user(QtGui.QMainWindow):
         lista.append(self.ui.lineEdit_3.text())
         lista.append(self.ui.lineEdit_4.text())
         if self.ui.comboBox.currentIndex() == 0: tipo = 'p'
-        else: tipo = 'a'
+        elif self.ui.comboBox.currentIndex() == 1: tipo = 'a'
+        else: tipo = 's'
         lista.append(tipo)
-        sql = ''' insert into usuarios (nome,cod_barra,email,cpf,tipo) values ('%s',%d,'%s','%s','%s') ''' % (lista[0],lista[1],lista[2],
-                                                                                                              lista[3],lista[4])
-        try:
-            insert_banco(sql)
+        sql = ''' select nome from usuarios where nome = '%s' ''' % lista[0]
+        verifica = select_banco_str(sql)
+        if len(verifica) == 0:
+            sql = ''' insert into usuarios (nome,cod_barra,email,cpf,tipo) values ('%s',%d,'%s','%s','%s') ''' % (lista[0],lista[1],lista[2],
+                                                                                                                  lista[3],lista[4])
+            try:
+                insert_banco(sql)
+                d = dialog(self)
+                d.ui.label.setText(u"Usuário cadastrado com sucesso!")
+                d.show()
+            except psycopg2.Error:
+                d = dialog(self)
+                d.ui.label.setText(u"Ocorreu um erro,contate administrador do programa!")
+            self.limpa()
+        else:
             d = dialog(self)
-            d.ui.label.setText(u"Usuário cadastrado com sucesso!")
-            d.show()
-        except psycopg2.Error:
-            d = dialog(self)
-            d.ui.label.setText(u"Ocorreu um erro,contate administrador do programa!")
-        self.limpa()
+            d.ui.label.setText(u"Usuário já cadastrado com esse nome!")
+            d.show()     
     def atualiza_user(self):
         global usr_id
         lista = []
@@ -1409,7 +1437,8 @@ class cad_user(QtGui.QMainWindow):
         lista.append(self.ui.lineEdit_3.text())
         lista.append(self.ui.lineEdit_4.text())
         if self.ui.comboBox.currentIndex() == 0: tipo = 'p'
-        else: tipo = 'a'
+        elif self.ui.comboBox.currentIndex() == 1: tipo = 'a'
+        else: tipo = 's'
         lista.append(tipo)  
         sql = ''' update usuarios set nome = '%s',cod_barra = %d,email = '%s',cpf = '%s',tipo = '%s' where id = %d ''' % (lista[1],lista[2],
                                                                         lista[3],lista[4],lista[5],int(lista[0]))  

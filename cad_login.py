@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'cad_login.ui'
 #
-# Created: Thu Dec 10 15:58:06 2015
+# Created: Sat Dec 12 09:06:48 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -99,6 +99,6 @@ class Ui_Cad_Logins(object):
         self.label_3.setText(_translate("Cad_Logins", "Login:", None))
         self.label_4.setText(_translate("Cad_Logins", "Senha:", None))
         self.pushButton_2.setText(_translate("Cad_Logins", "Voltar", None))
-        self.pushButton.setText(_translate("Cad_Logins", "OK", None))
+        self.pushButton.setText(_translate("Cad_Logins", "Salvar", None))
 
 import logo_rc
