@@ -395,6 +395,10 @@ class entregar(QtGui.QMainWindow):
                         select c.id,s.nome,c.nro_copia
                         from chaves c,salas s,autos a    
                 where c.sala_id = s.id and s.predio_id = %d and s.direito = 'a' ''' % (usr[0][0],int(predio_id),int(predio_id))
+                else:
+                    sql = '''select c.id,s.nome,c.nro_copia
+                            from chaves c,salas s,autos a
+                where a.usuario_id = %d and a.sala_id = s.id and c.sala_id = s.id and s.predio_id = %d ''' % (usr[0][0],int(predio_id))
                 chv = select_banco_str(sql)
                 for c in chv:
                     text = "%2d - %s - Cópia %d" % c
