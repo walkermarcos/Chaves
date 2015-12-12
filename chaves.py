@@ -170,6 +170,11 @@ class conf(QtGui.QDialog):
                 self.ui.lineEdit_2.setText(dat)
                 self.ui.lineEdit_3.setText(ussr)
                 self.ui.lineEdit_4.setText(paswd) 
+    def closeEvent(self,event):
+        s = login(self)
+        s.setVisible(True)
+        self.setVisible(False)
+        event.ignore()
     def fecha(self):
         configs = (self.ui.lineEdit.text(),self.ui.lineEdit_2.text(),
                    self.ui.lineEdit_3.text(),self.ui.lineEdit_4.text())
@@ -178,8 +183,6 @@ class conf(QtGui.QDialog):
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)
             spamwriter.writerows(configs)
         self.close()
-        l = login(self)
-        l.show()
                       
 class dialog(QtGui.QDialog):
     def __init__(self,parent = None):
@@ -241,9 +244,16 @@ class nivel1(QtGui.QMainWindow):
         self.ui.tableWidget.doubleClicked.connect(self.recebers)      
         self.preenche_lista()
         self.ui.lineEdit.textChanged.connect(self.preenche_lista)
-        self.ui.statusBar.showMessage(u"Recomendação do desenvolvedor: Nunca feche uma janela usando o X do canto superior direito!")
     def closeEvent(self,event):
-        self.close()
+        global logs
+        sql = 'update logins set ativo = False where id = %d' % logs
+        insert_banco(sql)
+        y = login(self)
+        self.setVisible(False)
+        y.show()
+        event.ignore()
+    def fecha(self):
+        self.close() 
     def recebers(self):
         select = self.ui.tableWidget.selectedItems()
         items = []
@@ -284,13 +294,6 @@ class nivel1(QtGui.QMainWindow):
         ent = entregar(self)
         ent.show()    
         self.setVisible(False)
-    def fecha(self):
-        global logs
-        sql = 'update logins set ativo = False where id = %d' % logs
-        insert_banco(sql)
-        y = login(self)
-        self.close() 
-        y.setVisible(True)
     def preenche_lista(self):
         colunas = ['Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega']
         self.ui.tableWidget.clear()
@@ -326,10 +329,13 @@ class entregar(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.but_proc,QtCore.SIGNAL('clicked()'),self.procura_usr)    
         QtCore.QObject.connect(self.ui.but_ent,QtCore.SIGNAL('clicked()'),self.ent_valores)
         QtCore.QObject.connect(self.ui.lineEdit,QtCore.SIGNAL('returnPressed()'),self.procura_usr)
+    def closeEvent(self,event):
+        n = nivel1(self)
+        n.setVisible(True)
+        self.setVisible(False)
+        event.ignore()
     def fecha(self):
-        self.close()
-        s = nivel1(self)
-        s.show()    
+        self.close()  
     def ent_valores(self):
         chave_id = self.ui.combo_sal.itemText(self.ui.combo_sal.currentIndex())[:3]
         sql = 'select chave_id from retiradas where datahora_rec isnull and chave_id = %d' % int(chave_id)
@@ -425,6 +431,11 @@ class receber(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.but_canc,QtCore.SIGNAL('clicked()'),self.fecha)
         QtCore.QObject.connect(self.ui.but_rec,QtCore.SIGNAL('clicked()'),self.recebe_chaves)
         self.preenche_pred()
+    def closeEvent(self,event):
+        n = nivel1(self)
+        n.setVisible(True)
+        self.setVisible(False)
+        event.ignore()
     def recebe_chaves(self): 
         retir_id = int(self.ui.combo_chav.itemText(self.ui.combo_chav.currentIndex())[:4])   
         sql = 'update retiradas set datahora_rec = now() where id = %d' % retir_id
@@ -444,8 +455,6 @@ class receber(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.combo_pred,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.preenche_combo)    
     def fecha(self):
         self.close()
-        s = nivel1(self)
-        s.show() 
     def preenche_combo(self):
         self.ui.combo_chav.clear()
         sala = str(self.ui.lineEdit.text())
@@ -531,9 +540,13 @@ class nivel2(QtGui.QMainWindow):
         self.ui.lineEdit_4.textChanged.connect(self.tabela_autos)
         self.ui.lineEdit_6.textChanged.connect(self.tabela_salas)
         self.ui.lineEdit_5.textChanged.connect(self.abilita_add_sala)
-        self.ui.statusBar.showMessage(u"Recomendação do desenvolvedor: Nunca feche uma janela usando o X do canto superior direito!")
         timer.start(5000)
         timer2.start(15000) 
+    def closeEvent(self,event):
+        s = login(self)
+        s.setVisible(True)
+        self.setVisible(False)
+        event.ignore()
     def abilita_add_sala(self):
         tamanho = len(self.ui.lineEdit_5.text())
         if tamanho > 0:
@@ -1195,9 +1208,7 @@ class nivel2(QtGui.QMainWindow):
             self.ui.tableWidget.setRowCount(0)
             self.ui.tableWidget.setColumnCount(0)
     def fecha(self):
-        y = login(self)
         self.close() 
-        y.setVisible(True)
     def lista_logins(self):
         self.ui.listWidget.clear()
         sql = 'select nome from logins where ativo = True'
@@ -1310,6 +1321,13 @@ class cad_login(QtGui.QMainWindow):
         self.ui.setupUi(self)             
         QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL('clicked()'),self.fecha)
         self.limpa()
+    def closeEvent(self,event):
+        n = nivel2(self)
+        n.setVisible(True)
+        n.ui.toolBox.setCurrentIndex(1)
+        n.ui.tabWidget.setCurrentIndex(4)
+        self.setVisible(False)
+        event.ignore()    
     def limpa(self):
         self.ui.lineEdit.clear()
         self.ui.comboBox_2.setCurrentIndex(0)
@@ -1381,11 +1399,7 @@ class cad_login(QtGui.QMainWindow):
             d.ui.label.setText(u"Login igual encontrado!")
             d.show() 
     def fecha(self):
-        n = nivel2(self)
         self.close()
-        n.setVisible(True)
-        n.ui.toolBox.setCurrentIndex(1)
-        n.ui.tabWidget.setCurrentIndex(4)
 
 class cad_user(QtGui.QMainWindow):
     def __init__(self,parent = None):
@@ -1394,6 +1408,12 @@ class cad_user(QtGui.QMainWindow):
         self.ui.setupUi(self)             
         QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL('clicked()'),self.fecha)
         self.limpa()
+    def closeEvent(self,event):
+        n = nivel2(self)
+        n.setVisible(True)
+        n.ui.toolBox.setCurrentIndex(1)
+        self.setVisible(False)
+        event.ignore()
     def limpa(self):
         self.ui.lineEdit.clear()
         self.ui.spinBox.clear()
@@ -1453,10 +1473,7 @@ class cad_user(QtGui.QMainWindow):
             d.show()
         self.limpa()
     def fecha(self):
-        n = nivel2(self)
         self.close()
-        n.setVisible(True)
-        n.ui.toolBox.setCurrentIndex(1)
              
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
