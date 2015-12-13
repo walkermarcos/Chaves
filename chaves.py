@@ -16,7 +16,7 @@ from mhlib import isnumeric
 import datetime
 import psycopg2
 import sys
-import csv
+import ConfigParser
 import glob
     
 def select_banco_str(sql):
@@ -61,31 +61,14 @@ class login(QtGui.QMainWindow):
         dat = ''
         ussr = ''
         paswd = ''
-        confirma = glob.glob('config.csv')
+        confirma = glob.glob('config.ini')
         if len(confirma) > 0:
-            conf = csv.reader(open('config.csv'))
-            config = list(range(4))
-            i = 0
-            for x in conf:
-                config[i] = str(x)
-                i += 1
-            for i in range(4):
-                if i == 0:
-                    for j in range(len(config[i])):
-                        if "'" != config[i][j] != ' ' and '[' != config[i][j] != ']':
-                            hot += config[i][j]
-                if i == 1:
-                    for j in range(len(config[i])):
-                        if "'" != config[i][j] != ' ' and '[' != config[i][j] != ']':
-                            dat += config[i][j]
-                if i == 2:
-                    for j in range(len(config[i])):
-                        if "'" != config[i][j] != ' ' and '[' != config[i][j] != ']':
-                            ussr += config[i][j]
-                if i == 3:
-                    for j in range(len(config[i])):
-                        if "'" != config[i][j] != ' ' and '[' != config[i][j] != ']':
-                            paswd += config[i][j]                              
+            config = ConfigParser.RawConfigParser()
+            config.read('config.ini')
+            hot = config.get('Section1','hot')
+            dat = config.get('Section1','dat')
+            ussr = config.get('Section1','ussr')
+            paswd = config.get('Section1','paswd')        
         QtCore.QObject.connect(self.ui.but_sair,QtCore.SIGNAL('clicked()'),self.fecha)
         QtCore.QObject.connect(self.ui.but_ok,QtCore.SIGNAL('clicked()'),self.entra)
         QtCore.QObject.connect(self.ui.edit_senha,QtCore.SIGNAL('returnPressed()'),self.entra)
@@ -137,51 +120,40 @@ class conf(QtGui.QDialog):
         self.ui = Ui_Conf()
         self.ui.setupUi(self)             
         QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha) 
-        confirma = glob.glob('config.csv')
+        confirma = glob.glob('config.ini')
         if len(confirma) > 0:
-            conf = csv.reader(open('config.csv'))
-            config = list(range(4))
             hot = ''
             dat = ''
             ussr = ''
             paswd = ''
-            i = 0
-            for x in conf:
-                config[i] = str(x)
-                i += 1
-            for i in range(4):
-                if i == 0:
-                    for j in range(len(config[i])):
-                        if "'" != config[i][j] != ' ' and '[' != config[i][j] != ']':
-                            hot += config[i][j]
-                if i == 1:
-                    for j in range(len(config[i])):
-                        if "'" != config[i][j] != ' ' and '[' != config[i][j] != ']':
-                            dat += config[i][j]
-                if i == 2:
-                    for j in range(len(config[i])):
-                        if "'" != config[i][j] != ' ' and '[' != config[i][j] != ']':
-                            ussr += config[i][j]
-                if i == 3:
-                    for j in range(len(config[i])):
-                        if "'" != config[i][j] != ' ' and '[' != config[i][j] != ']':
-                            paswd += config[i][j]
-                self.ui.lineEdit.setText(hot)
-                self.ui.lineEdit_2.setText(dat)
-                self.ui.lineEdit_3.setText(ussr)
-                self.ui.lineEdit_4.setText(paswd) 
+            config = ConfigParser.RawConfigParser()
+            config.read('config.ini')
+            hot = config.get('Section1','hot')
+            dat = config.get('Section1','dat')
+            ussr = config.get('Section1','ussr')
+            paswd = config.get('Section1','paswd')   
+            self.ui.lineEdit.setText(hot)
+            self.ui.lineEdit_2.setText(dat)
+            self.ui.lineEdit_3.setText(ussr)
+            self.ui.lineEdit_4.setText(paswd) 
     def closeEvent(self,event):
         s = login(self)
         s.setVisible(True)
         self.setVisible(False)
         event.ignore()
     def fecha(self):
-        configs = (self.ui.lineEdit.text(),self.ui.lineEdit_2.text(),
-                   self.ui.lineEdit_3.text(),self.ui.lineEdit_4.text())
-        with open('config.csv', 'w') as csvfile:
-            spamwriter = csv.writer(csvfile,delimiter = ' ',
-                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            spamwriter.writerows(configs)
+        config = ConfigParser.RawConfigParser()
+        config.add_section('Section1')
+        hot = str(self.ui.lineEdit.text())
+        dat = str(self.ui.lineEdit_2.text())
+        ussr = str(self.ui.lineEdit_3.text())
+        paswd = str(self.ui.lineEdit_4.text())
+        config.set('Section1','hot',hot)
+        config.set('Section1','dat',dat)
+        config.set('Section1','ussr',ussr)
+        config.set('Section1','paswd',paswd)
+        with open('config.ini', 'wb') as configfile:
+            config.write(configfile)
         self.close()
                       
 class dialog(QtGui.QDialog):

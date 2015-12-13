@@ -114,8 +114,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>384</width>
-         <height>174</height>
+         <width>681</width>
+         <height>247</height>
         </rect>
        </property>
        <attribute name="icon">
@@ -167,7 +167,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Predio:</string>
+           <string>Prédio:</string>
           </property>
          </widget>
         </item>
@@ -262,7 +262,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>0</y>
+         <y>-48</y>
          <width>667</width>
          <height>295</height>
         </rect>
@@ -311,7 +311,7 @@
            <enum>QTabWidget::West</enum>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>4</number>
           </property>
           <widget class="QWidget" name="tab">
            <property name="sizePolicy">
@@ -413,7 +413,7 @@
                </font>
               </property>
               <property name="text">
-               <string>Predio:</string>
+               <string>Prédio:</string>
               </property>
              </widget>
             </item>

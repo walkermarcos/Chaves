@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nivel2.ui'
 #
-# Created: Sat Dec 12 15:38:57 2015
+# Created: Sun Dec 13 09:53:35 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -75,7 +75,7 @@ class Ui_nivel2(object):
         self.toolBox.setAutoFillBackground(True)
         self.toolBox.setObjectName(_fromUtf8("toolBox"))
         self.retir = QtGui.QWidget()
-        self.retir.setGeometry(QtCore.QRect(0, 0, 384, 174))
+        self.retir.setGeometry(QtCore.QRect(0, 0, 681, 247))
         self.retir.setObjectName(_fromUtf8("retir"))
         self.gridLayout_2 = QtGui.QGridLayout(self.retir)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
@@ -148,7 +148,7 @@ class Ui_nivel2(object):
         self.gridLayout_2.addWidget(self.lineEdit_2, 3, 1, 1, 1)
         self.toolBox.addItem(self.retir, icon, _fromUtf8(""))
         self.cad = QtGui.QWidget()
-        self.cad.setGeometry(QtCore.QRect(0, 0, 667, 295))
+        self.cad.setGeometry(QtCore.QRect(0, -48, 667, 295))
         self.cad.setObjectName(_fromUtf8("cad"))
         self.gridLayout_4 = QtGui.QGridLayout(self.cad)
         self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
@@ -886,7 +886,7 @@ class Ui_nivel2(object):
 
         self.retranslateUi(nivel2)
         self.toolBox.setCurrentIndex(1)
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(4)
         QtCore.QMetaObject.connectSlotsByName(nivel2)
 
     def retranslateUi(self, nivel2):
@@ -895,7 +895,7 @@ class Ui_nivel2(object):
         self.label_5.setText(_translate("nivel2", "Logins ativos:", None))
         self.label_4.setText(_translate("nivel2", "Ano:", None))
         self.label_3.setText(_translate("nivel2", "Mes:", None))
-        self.label_2.setText(_translate("nivel2", "Predio:", None))
+        self.label_2.setText(_translate("nivel2", "Prédio:", None))
         self.pushButton_4.setText(_translate("nivel2", "Excluir", None))
         self.comboBox_2.setItemText(0, _translate("nivel2", "Todas", None))
         self.comboBox_2.setItemText(1, _translate("nivel2", "Em aberto", None))
@@ -906,7 +906,7 @@ class Ui_nivel2(object):
         self.pushButton_2.setText(_translate("nivel2", "Novo", None))
         self.pushButton_3.setText(_translate("nivel2", "Excluir", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("nivel2", "Usuários", None))
-        self.label_8.setText(_translate("nivel2", "Predio:", None))
+        self.label_8.setText(_translate("nivel2", "Prédio:", None))
         self.label_9.setText(_translate("nivel2", "Sala:", None))
         self.label_10.setText(_translate("nivel2", "Usuários:", None))
         self.label_11.setText(_translate("nivel2", "Autorizações:", None))
