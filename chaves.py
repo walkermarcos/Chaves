@@ -661,7 +661,7 @@ class nivel2(QtGui.QMainWindow):
             self.ui.tableWidget.setRowCount(0)
             self.ui.tableWidget.setColumnCount(0)
     def add_predio(self):
-        nome = self.ui.lineEdit_7.text()
+        nome = self.ui.lineEdit_7.text()[:40]
         sql = '''select nome from predios
             where nome = '%s' ''' % nome
         verifica = select_banco_str(sql)
@@ -902,7 +902,7 @@ class nivel2(QtGui.QMainWindow):
             except ValueError:
                 pass 
     def insert_sala(self):
-        nome = self.ui.lineEdit_5.text()
+        nome = self.ui.lineEdit_5.text()[:10]
         predio = self.ui.comboBox_7.itemText(self.ui.comboBox_7.currentIndex())[:3]
         if self.ui.comboBox_8.currentIndex() == 2:
             direito = 'a'
@@ -1311,10 +1311,10 @@ class cad_login(QtGui.QMainWindow):
         self.ui.lineEdit_4.clear()
     def add_login(self):
         lista = []
-        lista.append(self.ui.lineEdit.text())
+        lista.append(self.ui.lineEdit.text()[:40])
         lista.append((self.ui.comboBox_2.currentIndex()+1))
-        lista.append(self.ui.lineEdit_3.text())
-        lista.append(self.ui.lineEdit_4.text())
+        lista.append(self.ui.lineEdit_3.text()[:20])
+        lista.append(self.ui.lineEdit_4.text()[:20])
         sql = ''' select login from logins where login = '%s' ''' % lista[2]
         verifica = select_banco_str(sql)
         if len(verifica) == 0:
@@ -1338,10 +1338,10 @@ class cad_login(QtGui.QMainWindow):
         global log_id
         lista = []
         lista.append(log_id)
-        lista.append(self.ui.lineEdit.text())
+        lista.append(self.ui.lineEdit.text()[:40])
         lista.append((self.ui.comboBox_2.currentIndex()+1))
-        lista.append(self.ui.lineEdit_3.text())
-        lista.append(self.ui.lineEdit_4.text())
+        lista.append(self.ui.lineEdit_3.text()[:20])
+        lista.append(self.ui.lineEdit_4.text()[:20])
         login_nome = str(lista[3])
         i = 0
         while len(login_nome) < 20:
@@ -1398,10 +1398,10 @@ class cad_user(QtGui.QMainWindow):
         self.ui.comboBox.setCurrentIndex(0) 
     def add_user(self):
         lista = []
-        lista.append(self.ui.lineEdit.text())
+        lista.append(self.ui.lineEdit.text()[:40])
         lista.append(self.ui.spinBox.value())
-        lista.append(self.ui.lineEdit_3.text())
-        lista.append(self.ui.lineEdit_4.text())
+        lista.append(self.ui.lineEdit_3.text()[:60])
+        lista.append(self.ui.lineEdit_4.text()[:15])
         if self.ui.comboBox.currentIndex() == 0: tipo = 'p'
         elif self.ui.comboBox.currentIndex() == 1: tipo = 'a'
         else: tipo = 's'
@@ -1428,10 +1428,10 @@ class cad_user(QtGui.QMainWindow):
         global usr_id
         lista = []
         lista.append(usr_id)
-        lista.append(self.ui.lineEdit.text())
+        lista.append(self.ui.lineEdit.text()[:40])
         lista.append(self.ui.spinBox.value())
-        lista.append(self.ui.lineEdit_3.text())
-        lista.append(self.ui.lineEdit_4.text())
+        lista.append(self.ui.lineEdit_3.text()[:60])
+        lista.append(self.ui.lineEdit_4.text()[:15])
         if self.ui.comboBox.currentIndex() == 0: tipo = 'p'
         elif self.ui.comboBox.currentIndex() == 1: tipo = 'a'
         else: tipo = 's'
