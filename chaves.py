@@ -18,7 +18,34 @@ import psycopg2
 import sys
 import ConfigParser
 import glob
-    
+
+def verifica_cpf(cpf):
+    numeros = ''
+    for c in cpf:
+        if isnumeric(c) or c == '0':
+            numeros += c
+    if len(numeros) > 0:
+        total1 = 0
+        i = 10
+        for n in numeros[:9]:
+            total1 += (int(n) * i)
+            i -= 1
+        total2 = 0
+        i = 11
+        for n in numeros[:10]:         
+            total2 += (int(n) * i)
+            i -= 1
+        resto1 = total1 % 11
+        resto2 = total2 % 11
+        if resto1 < 2: dig1 = 0
+        else: dig1 = 11 - resto1
+        if resto2 < 2: dig2 = 0
+        else: dig2 = 11 - resto2
+        if (dig1 == int(numeros[9])) and (dig2 == int(numeros[10])):
+            return True 
+        else: return False  
+    else: return True    
+
 def select_banco_str(sql):
     global hot
     global dat
@@ -1078,8 +1105,9 @@ class nivel2(QtGui.QMainWindow):
         c.ui.spinBox.setValue(int(cod))
         c.ui.lineEdit_3.setText(eml)
         c.ui.lineEdit_4.setText(cpf)
-        if tipo == 'p':c.ui.comboBox.setCurrentIndex(0)
-        else : c.ui.comboBox.setCurrentIndex(1)
+        if tipo[:1] == 'P':c.ui.comboBox.setCurrentIndex(0)
+        elif tipo[:1] == 'A' : c.ui.comboBox.setCurrentIndex(1)
+        else: c.ui.comboBox.setCurrentIndex(2)
         c.show()
         self.setVisible(False)    
         self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.atualiza_user)
@@ -1376,7 +1404,7 @@ class cad_login(QtGui.QMainWindow):
             d.show() 
     def fecha(self):
         self.close()
-
+    
 class cad_user(QtGui.QMainWindow):
     def __init__(self,parent = None):
         QtGui.QWidget.__init__(self,parent)
@@ -1407,19 +1435,25 @@ class cad_user(QtGui.QMainWindow):
         else: tipo = 's'
         lista.append(tipo)
         sql = ''' select nome from usuarios where nome = '%s' ''' % lista[0]
-        verifica = select_banco_str(sql)
+        verifica = select_banco_str(sql) 
+        verifica_c = verifica_cpf(lista[3])
         if len(verifica) == 0:
-            sql = ''' insert into usuarios (nome,cod_barra,email,cpf,tipo) values ('%s',%d,'%s','%s','%s') ''' % (lista[0],lista[1],lista[2],
-                                                                                                                  lista[3],lista[4])
-            try:
-                insert_banco(sql)
+            if verifica_c == True:
+                sql = ''' insert into usuarios (nome,cod_barra,email,cpf,tipo) values ('%s',%d,'%s','%s','%s') ''' % (lista[0],lista[1],lista[2],
+                                                                                                                      lista[3],lista[4])
+                try:
+                    insert_banco(sql)
+                    d = dialog(self)
+                    d.ui.label.setText(u"Usuário cadastrado com sucesso!")
+                    d.show()
+                except psycopg2.Error:
+                    d = dialog(self)
+                    d.ui.label.setText(u"Ocorreu um erro,contate administrador do programa!")
+                self.limpa()
+            else:
                 d = dialog(self)
-                d.ui.label.setText(u"Usuário cadastrado com sucesso!")
+                d.ui.label.setText(u"CPF inválido!")
                 d.show()
-            except psycopg2.Error:
-                d = dialog(self)
-                d.ui.label.setText(u"Ocorreu um erro,contate administrador do programa!")
-            self.limpa()
         else:
             d = dialog(self)
             d.ui.label.setText(u"Usuário já cadastrado com esse nome!")
@@ -1436,18 +1470,24 @@ class cad_user(QtGui.QMainWindow):
         elif self.ui.comboBox.currentIndex() == 1: tipo = 'a'
         else: tipo = 's'
         lista.append(tipo)  
-        sql = ''' update usuarios set nome = '%s',cod_barra = %d,email = '%s',cpf = '%s',tipo = '%s' where id = %d ''' % (lista[1],lista[2],
-                                                                        lista[3],lista[4],lista[5],int(lista[0]))  
-        try:
-            insert_banco(sql)
+        verifica_c = verifica_cpf(lista[4])
+        if verifica_c == True:
+            sql = ''' update usuarios set nome = '%s',cod_barra = %d,email = '%s',cpf = '%s',tipo = '%s' where id = %d ''' % (lista[1],lista[2],
+                                                                            lista[3],lista[4],lista[5],int(lista[0]))  
+            try:
+                insert_banco(sql)
+                d = dialog(self)
+                d.ui.label.setText(u"Alteração feita com sucesso!")
+                d.show()
+            except psycopg2.Error:
+                d = dialog(self)
+                d.ui.label.setText(u"Não foi possível realizar a alteração desejada.!")
+                d.show()
+            self.limpa()
+        else:
             d = dialog(self)
-            d.ui.label.setText(u"Alteração feita com sucesso!")
+            d.ui.label.setText(u"CPF inválido!")
             d.show()
-        except psycopg2.Error:
-            d = dialog(self)
-            d.ui.label.setText(u"Não foi possível realizar a alteração desejada.!")
-            d.show()
-        self.limpa()
     def fecha(self):
         self.close()
              
