@@ -1153,6 +1153,7 @@ class nivel2(QtGui.QMainWindow):
                 sql = ''' delete from usuarios where id = %d ''' % e
                 insert_banco(sql)
                 self.tabela_retiradas()
+                self.lista_usuarios()
             except psycopg2.IntegrityError:
                 d = dialog(self)
                 d.ui.label.setText(u"Não foi possivel excluir usuário %d,existem retiradas ou autorizações para o mesmo!" % e) 
