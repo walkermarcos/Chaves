@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nivel2.ui'
 #
-# Created: Sun Dec 13 09:53:35 2015
+# Created: Mon Dec 14 11:11:21 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -148,7 +148,7 @@ class Ui_nivel2(object):
         self.gridLayout_2.addWidget(self.lineEdit_2, 3, 1, 1, 1)
         self.toolBox.addItem(self.retir, icon, _fromUtf8(""))
         self.cad = QtGui.QWidget()
-        self.cad.setGeometry(QtCore.QRect(0, -48, 667, 295))
+        self.cad.setGeometry(QtCore.QRect(0, 0, 667, 295))
         self.cad.setObjectName(_fromUtf8("cad"))
         self.gridLayout_4 = QtGui.QGridLayout(self.cad)
         self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
@@ -450,7 +450,7 @@ class Ui_nivel2(object):
         self.listWidget_3.setSizePolicy(sizePolicy)
         self.listWidget_3.setMinimumSize(QtCore.QSize(1, 0))
         self.listWidget_3.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-        self.listWidget_3.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
+        self.listWidget_3.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.listWidget_3.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.listWidget_3.setObjectName(_fromUtf8("listWidget_3"))
         self.gridLayout_6.addWidget(self.listWidget_3, 6, 6, 1, 4)
@@ -886,7 +886,7 @@ class Ui_nivel2(object):
 
         self.retranslateUi(nivel2)
         self.toolBox.setCurrentIndex(1)
-        self.tabWidget.setCurrentIndex(4)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(nivel2)
 
     def retranslateUi(self, nivel2):

@@ -262,7 +262,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>-48</y>
+         <y>0</y>
          <width>667</width>
          <height>295</height>
         </rect>
@@ -311,7 +311,7 @@
            <enum>QTabWidget::West</enum>
           </property>
           <property name="currentIndex">
-           <number>4</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="tab">
            <property name="sizePolicy">
@@ -987,7 +987,7 @@
                <set>QAbstractItemView::NoEditTriggers</set>
               </property>
               <property name="selectionMode">
-               <enum>QAbstractItemView::NoSelection</enum>
+               <enum>QAbstractItemView::ExtendedSelection</enum>
               </property>
               <property name="selectionBehavior">
                <enum>QAbstractItemView::SelectRows</enum>

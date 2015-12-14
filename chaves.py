@@ -771,22 +771,31 @@ class nivel2(QtGui.QMainWindow):
         self.connect(d.ui.pushButton,QtCore.SIGNAL('clicked()'),self.excluic)
     def excluic(self):
         select = self.ui.tableWidget_4.selectedItems()
+        select2 = self.ui.listWidget_3.selectedItems()
         lista = []
+        lista2 = []
+        if len(select2) > 0:
+            for sel in select2:
+                item = QtGui.QListWidgetItem(sel).text()
+                lista2.append(item)    
         for sel in select:
             item = QtGui.QTableWidgetItem(sel).text()
             lista.append(item)
         if len(lista) > 0:
-            sala = int(lista[0])
-            sql = ''' select id,nro_copia from chaves
-            where sala_id = %d 
-            order by nro_copia''' % sala
-            chaves = select_banco_str(sql)
-            maior = 0
-            for ch in chaves:
-                if maior < ch[1]:
-                    maior = ch[1]
-                    chave_id = ch[0]
-            sql = ''' delete from chaves where id = %d''' % int(chave_id)
+            if len(lista2) > 0:
+                sql = ''' delete from chaves where id = %d ''' % int(lista2[0][:3])
+            else:    
+                sala = int(lista[0])
+                sql = ''' select id,nro_copia from chaves
+                where sala_id = %d 
+                order by nro_copia''' % sala
+                chaves = select_banco_str(sql)
+                maior = 0
+                for ch in chaves:
+                    if maior < ch[1]:
+                        maior = ch[1]
+                        chave_id = ch[0]
+                sql = ''' delete from chaves where id = %d''' % int(chave_id)
             try:
                 insert_banco(sql)
                 self.lista_copias()
