@@ -258,32 +258,20 @@ class nivel1(QtGui.QMainWindow):
         items = []
         for sel in select:
             items.append(QtGui.QTableWidgetItem(sel).text())
-        nomes = items[3]
-        salas = items[1]
-        nome = ''
-        sala = ''
-        for i in range(len(nomes)):
-            if (nomes[i] == ' ' and nomes[i+1] != ' ') or nomes[i] != ' ':
-                nome += nomes[i]    
-            else :
-                break
-        for j in range(len(salas)):
-            if (salas[j] == ' ' and salas[j+1] != ' ') or salas[j] != ' ':
-                sala += salas[j]    
-            else :
-                break        
+        retir_id = items[0]   
         r = receber(self)
-        r.show()
+        r.setVisible(True)
         r.ui.combo_chav.clear()
-        sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),s.predio_id
-            from logins l,retiradas r,salas s,usuarios u,chaves c
-            where s.nome = '%s' and r.usuario_id = u.id and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.nome = '%s' and r.datahora_rec isnull''' % (sala,nome)
+        sql = '''select r.id,u.nome,s.nome,c.nro_copia,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi'),s.predio_id,p.nome
+            from logins l,retiradas r,salas s,usuarios u,chaves c,predios p
+            where r.id = %d and l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and r.usuario_id = u.id and s.predio_id = p.id''' % (int(retir_id))
         ret = select_banco_str(sql)
-        for x in ret:
-            if x[6] == int(r.ui.combo_pred.itemText(r.ui.combo_pred.currentIndex())[:3]):
-                texto = "%3d - %s - Cópia %d - %s - %s" % (x[0],x[4],x[3],x[1],x[5])
-                r.ui.combo_chav.addItem(texto.decode('utf-8'))
-                r.ui.lineEdit.setText('%s' % x[2][:4])
+        r.ui.combo_pred.clear()
+        texto = "%2d - %s" % (ret[0][5],ret[0][6])
+        r.ui.combo_pred.addItem(texto)
+        texto = "%3d - %s - %s - Cópia %d - %s" % (ret[0][0],ret[0][1],ret[0][2],ret[0][3],ret[0][4])
+        r.ui.combo_chav.addItem(texto.decode('utf-8'))
+        r.ui.lineEdit.setText('%s' % ret[0][2][:4])
         self.setVisible(False)         
     def receberc(self):
         r = receber(self)
@@ -294,22 +282,22 @@ class nivel1(QtGui.QMainWindow):
         ent.show()    
         self.setVisible(False)
     def preenche_lista(self):
-        colunas = ['Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega']
+        colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega']
         self.ui.tableWidget.clear()
         if (self.ui.lineEdit.text()) == 0:
-            sql = '''select l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
+            sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
                 from logins l,retiradas r,salas s,usuarios u,chaves c
                 where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull'''
         else :
             filtro = str(self.ui.lineEdit.text())
-            sql = '''select l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
+            sql = '''select r.id,l.nome,s.nome,c.nro_copia,u.nome,to_char(r.datahora_ent, 'DD/MM/YYYY hh24:mi')
                 from logins l,retiradas r,salas s,usuarios u,chaves c
                 where l.id = r.login_id and c.id = r.chave_id and c.sala_id = s.id and u.id = usuario_id and r.datahora_rec isnull
                 and (upper(u.nome) like '%s%%' or upper(s.nome) like '%s%%')''' % (filtro.upper(),filtro.upper())
         ret = select_banco_str(sql)
         self.ui.tableWidget.setRowCount(len(ret))
-        self.ui.tableWidget.setColumnCount(5)
-        for j in range(5):
+        self.ui.tableWidget.setColumnCount(len(colunas))
+        for j in range(len(colunas)):
             item2 = QtGui.QTableWidgetItem(colunas[j])
             self.ui.tableWidget.setHorizontalHeaderItem(j,item2)
             for i in range(len(ret)):
@@ -454,8 +442,7 @@ class receber(QtGui.QMainWindow):
         for p in pred:
             text = "%2d - %s" % p
             self.ui.combo_pred.addItem(text.decode('utf-8'))
-        QtCore.QObject.connect(self.ui.lineEdit,QtCore.SIGNAL('returnPressed()'),self.preenche_combo)
-        QtCore.QObject.connect(self.ui.combo_pred,QtCore.SIGNAL("currentIndexChanged(const QString&)"),self.preenche_combo)    
+        QtCore.QObject.connect(self.ui.lineEdit,QtCore.SIGNAL('returnPressed()'),self.preenche_combo)   
     def fecha(self):
         self.close()
     def preenche_combo(self):
