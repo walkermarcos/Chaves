@@ -95,7 +95,7 @@ class login(QtGui.QMainWindow):
             hot = config.get('Section1','hot')
             dat = config.get('Section1','dat')
             ussr = config.get('Section1','ussr')
-            paswd = config.get('Section1','paswd')        
+            paswd = config.get('Section1','paswd')      
         QtCore.QObject.connect(self.ui.but_sair,QtCore.SIGNAL('clicked()'),self.fecha)
         QtCore.QObject.connect(self.ui.but_ok,QtCore.SIGNAL('clicked()'),self.entra)
         QtCore.QObject.connect(self.ui.edit_senha,QtCore.SIGNAL('returnPressed()'),self.entra)
@@ -158,7 +158,7 @@ class conf(QtGui.QDialog):
             hot = config.get('Section1','hot')
             dat = config.get('Section1','dat')
             ussr = config.get('Section1','ussr')
-            paswd = config.get('Section1','paswd')   
+            paswd = config.get('Section1','paswd')      
             self.ui.lineEdit.setText(hot)
             self.ui.lineEdit_2.setText(dat)
             self.ui.lineEdit_3.setText(ussr)
@@ -248,8 +248,8 @@ class nivel1(QtGui.QMainWindow):
         sql = 'update logins set ativo = False where id = %d' % logs
         insert_banco(sql)
         y = login(self)
-        self.setVisible(False)
         y.show()
+        self.setVisible(False)
         event.ignore()
     def fecha(self):
         self.close() 
@@ -338,8 +338,6 @@ class entregar(QtGui.QMainWindow):
                                                                                             int(chave_id),int(usr_id))
             insert_banco(sql)
             self.close()
-            s = nivel1(self)
-            s.show()
     def preenche_pred(self):
         self.ui.combo_pred.clear()
         sql = 'select * from predios'
