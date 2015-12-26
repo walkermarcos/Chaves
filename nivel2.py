@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nivel2.ui'
 #
-# Created: Mon Dec 14 11:11:21 2015
+# Created: Fri Dec 25 23:43:52 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -885,8 +885,8 @@ class Ui_nivel2(object):
         nivel2.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(nivel2)
-        self.toolBox.setCurrentIndex(1)
-        self.tabWidget.setCurrentIndex(2)
+        self.toolBox.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(nivel2)
 
     def retranslateUi(self, nivel2):

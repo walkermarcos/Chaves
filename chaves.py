@@ -77,10 +77,17 @@ def insert_banco(sql):
      
 class login(QtGui.QMainWindow):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(login,self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        global hot
+        self.confere_dados()
+        QtCore.QObject.connect(self.ui.but_sair,QtCore.SIGNAL('clicked()'),self.fecha)
+        QtCore.QObject.connect(self.ui.but_ok,QtCore.SIGNAL('clicked()'),self.entra)
+        QtCore.QObject.connect(self.ui.edit_senha,QtCore.SIGNAL('returnPressed()'),self.entra)
+        QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.conf)
+        self.ui.edit_nome.setFocus()
+    def confere_dados(self):
+	global hot
         global dat
         global ussr
         global paswd
@@ -96,11 +103,6 @@ class login(QtGui.QMainWindow):
             dat = config.get('Section1','dat')
             ussr = config.get('Section1','ussr')
             paswd = config.get('Section1','paswd')      
-        QtCore.QObject.connect(self.ui.but_sair,QtCore.SIGNAL('clicked()'),self.fecha)
-        QtCore.QObject.connect(self.ui.but_ok,QtCore.SIGNAL('clicked()'),self.entra)
-        QtCore.QObject.connect(self.ui.edit_senha,QtCore.SIGNAL('returnPressed()'),self.entra)
-        QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.conf)
-        self.ui.edit_nome.setFocus()
         if len(hot) == 0:
             self.ui.but_ok.setEnabled(False)
         else:
@@ -108,11 +110,12 @@ class login(QtGui.QMainWindow):
     def conf(self):
         c = conf(self)
         c.show()
-        self.setVisible(False)
+        c.ui.pushButton.clicked.connect(self.confere_dados)
     def fecha(self):
         self.close()  
     def entra(self):
         global logs
+        global myapp
         nome = self.ui.edit_nome.text()
         senha = self.ui.edit_senha.text()
         while len(nome) < 20:
@@ -122,19 +125,18 @@ class login(QtGui.QMainWindow):
         sql = '''select l.nivel,l.id
             from logins l
             where l.login = '%s' and senha = '%s' ''' % (str(nome),str(senha))
-        log = select_banco_str(sql)
+	try:
+	  log = select_banco_str(sql)
+	except psycopg2.Error as error:
+	  QtGui.QMessageBox.about(self,"Problema",error)
         if len(log) > 0:
             logs = int(log[0][1])
             if log[0][0] == 1: # Nivel 1
                 sql = 'update logins set ativo = True where id = %d' % logs
                 insert_banco(sql)
-                s = nivel1(self)
-                s.show()
-                self.setVisible(False)
+                myapp = nivel1()
             elif log[0][0] == 2: # Nivel 2
-                s = nivel2(self)
-                s.show()
-                self.setVisible(False)    
+                myapp = nivel2()
         else:
             t = dialog(self)
             texto = "Usuário e/ou senha inválidos!"
@@ -143,10 +145,10 @@ class login(QtGui.QMainWindow):
 
 class conf(QtGui.QDialog):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(conf,self).__init__(parent)
         self.ui = Ui_Conf()
         self.ui.setupUi(self)             
-        QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha) 
+        QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.grava_dados) 
         confirma = glob.glob('config.ini')
         if len(confirma) > 0:
             hot = ''
@@ -164,28 +166,28 @@ class conf(QtGui.QDialog):
             self.ui.lineEdit_3.setText(ussr)
             self.ui.lineEdit_4.setText(paswd) 
     def closeEvent(self,event):
-        s = login(self)
-        s.setVisible(True)
-        self.setVisible(False)
-        event.ignore()
+        self.grava_dados()
+        event.accept()
+    def grava_dados(self):
+	config = ConfigParser.RawConfigParser()
+	config.add_section('Section1')
+	hot = str(self.ui.lineEdit.text())
+	dat = str(self.ui.lineEdit_2.text())
+	ussr = str(self.ui.lineEdit_3.text())
+	paswd = str(self.ui.lineEdit_4.text())
+	config.set('Section1','hot',hot)
+	config.set('Section1','dat',dat)
+	config.set('Section1','ussr',ussr)
+	config.set('Section1','paswd',paswd)
+	with open('config.ini', 'wb') as configfile:
+	    config.write(configfile)
+	self.fecha()
     def fecha(self):
-        config = ConfigParser.RawConfigParser()
-        config.add_section('Section1')
-        hot = str(self.ui.lineEdit.text())
-        dat = str(self.ui.lineEdit_2.text())
-        ussr = str(self.ui.lineEdit_3.text())
-        paswd = str(self.ui.lineEdit_4.text())
-        config.set('Section1','hot',hot)
-        config.set('Section1','dat',dat)
-        config.set('Section1','ussr',ussr)
-        config.set('Section1','paswd',paswd)
-        with open('config.ini', 'wb') as configfile:
-            config.write(configfile)
-        self.close()
+	self.close()
                       
 class dialog(QtGui.QDialog):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(dialog,self).__init__(parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)             
         QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha) 
@@ -194,7 +196,7 @@ class dialog(QtGui.QDialog):
 
 class dialog2(QtGui.QDialog):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(dialog2,self).__init__(parent)
         self.ui = Ui_Dialog2()
         self.ui.setupUi(self)             
         QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL('clicked()'),self.fecha) 
@@ -222,7 +224,7 @@ class dialog2(QtGui.QDialog):
         
 class dialog3(QtGui.QDialog):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(dialog3,self).__init__(parent)
         self.ui = Ui_Dialog_3()
         self.ui.setupUi(self)   
         QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL('clicked()'),self.fecha)
@@ -232,7 +234,7 @@ class dialog3(QtGui.QDialog):
 
 class nivel1(QtGui.QMainWindow):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(nivel1,self).__init__(parent)
         self.ui = Ui_Nivel1()
         self.ui.setupUi(self)
         self.showMaximized()
@@ -244,12 +246,12 @@ class nivel1(QtGui.QMainWindow):
         self.preenche_lista()
         self.ui.lineEdit.textChanged.connect(self.preenche_lista)
     def closeEvent(self,event):
+        global myapp
         global logs
         sql = 'update logins set ativo = False where id = %d' % logs
         insert_banco(sql)
-        y = login(self)
-        y.show()
-        self.setVisible(False)
+        myapp = login()
+        myapp.show()
         event.ignore()
     def fecha(self):
         self.close() 
@@ -274,13 +276,13 @@ class nivel1(QtGui.QMainWindow):
         r.ui.lineEdit.setText('%s' % ret[0][2][:4])
         self.setVisible(False)         
     def receberc(self):
-        r = receber(self)
-        r.show()
-        self.setVisible(False)
+	global myapp
+        myapp = receber()
+        myapp.show()
     def entrega(self):
-        ent = entregar(self)
-        ent.show()    
-        self.setVisible(False)
+        global myapp
+        myapp = entregar()
+        myapp.show()
     def preenche_lista(self):
         colunas = [' ID ','Login','Sala',u'Cópia',u'Usuário','Data/Hora Entrega']
         self.ui.tableWidget.clear()
@@ -307,7 +309,7 @@ class nivel1(QtGui.QMainWindow):
                 
 class entregar(QtGui.QMainWindow):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(entregar,self).__init__(parent)
         self.ui = Ui_Mainentrega()
         self.ui.setupUi(self)
         self.preenche_pred()
@@ -317,9 +319,10 @@ class entregar(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.but_ent,QtCore.SIGNAL('clicked()'),self.ent_valores)
         QtCore.QObject.connect(self.ui.lineEdit,QtCore.SIGNAL('returnPressed()'),self.procura_usr)
     def closeEvent(self,event):
-        n = nivel1(self)
-        n.setVisible(True)
-        self.setVisible(False)
+        global myapp
+        myapp = nivel1()
+        myapp.show()
+        event.ignore()
         event.ignore()
     def fecha(self):
         self.close()  
@@ -414,16 +417,16 @@ class entregar(QtGui.QMainWindow):
                               
 class receber(QtGui.QMainWindow):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(receber,self).__init__(parent)
         self.ui = Ui_receber()
         self.ui.setupUi(self)
         QtCore.QObject.connect(self.ui.but_canc,QtCore.SIGNAL('clicked()'),self.fecha)
         QtCore.QObject.connect(self.ui.but_rec,QtCore.SIGNAL('clicked()'),self.recebe_chaves)
         self.preenche_pred()
     def closeEvent(self,event):
-        n = nivel1(self)
-        n.setVisible(True)
-        self.setVisible(False)
+        global myapp
+        myapp = nivel1()
+        myapp.show()
         event.ignore()
     def recebe_chaves(self): 
         retir_id = int(self.ui.combo_chav.itemText(self.ui.combo_chav.currentIndex())[:4])   
@@ -458,34 +461,10 @@ class receber(QtGui.QMainWindow):
 
 class nivel2(QtGui.QMainWindow):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(nivel2,self).__init__(parent)
         self.ui = Ui_nivel2()
         self.ui.setupUi(self) 
         self.showMaximized()
-        self.preenche_ano()
-        self.preenche_mes()
-        self.preenche_pred()
-        self.tabela_retiradas()
-        self.lista_logins()
-        self.ui.toolBox.setCurrentIndex(0)
-        self.ui.tabWidget.setCurrentIndex(0)
-        self.preenche_usuarios()
-        self.lista_usuarios()
-        self.tabela_autos()
-        self.tabela_salas()
-        self.tabela_predios()
-        self.tabela_logins()
-        self.ui.pushButton_7.setEnabled(False)
-        self.ui.pushButton_10.setEnabled(False)
-        self.ui.pushButton_11.setEnabled(False)
-        self.ui.pushButton_9.setEnabled(False)
-        self.ui.pushButton_12.setEnabled(False)
-        self.ui.pushButton_4.setEnabled(False)
-        self.ui.pushButton_5.setEnabled(False)
-        self.ui.pushButton_6.setEnabled(False)
-        self.ui.pushButton_3.setEnabled(False)
-        self.ui.pushButton_14.setEnabled(False)
-        self.ui.pushButton_8.setEnabled(False)
         timer = QTimer(self)
         timer2 = QTimer(self)
         QtCore.QObject.connect(self.ui.pushButton,QtCore.SIGNAL('clicked()'),self.fecha)  
@@ -529,11 +508,36 @@ class nivel2(QtGui.QMainWindow):
         self.ui.lineEdit_6.textChanged.connect(self.tabela_salas)
         self.ui.lineEdit_5.textChanged.connect(self.abilita_add_sala)
         timer.start(5000)
-        timer2.start(15000) 
+        timer2.start(15000)
+        self.preenche_ano()
+        self.preenche_mes()
+        self.preenche_pred()
+        self.tabela_retiradas()
+        self.lista_logins()
+        #self.ui.toolBox.setCurrentIndex(0)
+        #self.ui.tabWidget.setCurrentIndex(0)
+        self.preenche_usuarios()
+        self.lista_usuarios()
+        self.tabela_autos()
+        self.tabela_salas()
+        self.tabela_predios()
+        self.tabela_logins()
+        self.ui.pushButton_7.setEnabled(False)
+        self.ui.pushButton_10.setEnabled(False)
+        self.ui.pushButton_11.setEnabled(False)
+        self.ui.pushButton_9.setEnabled(False)
+        self.ui.pushButton_12.setEnabled(False)
+        self.ui.pushButton_4.setEnabled(False)
+        self.ui.pushButton_5.setEnabled(False)
+        self.ui.pushButton_6.setEnabled(False)
+        self.ui.pushButton_3.setEnabled(False)
+        self.ui.pushButton_14.setEnabled(False)
+        self.ui.pushButton_8.setEnabled(False)
     def closeEvent(self,event):
-        s = login(self)
-        s.setVisible(True)
-        self.setVisible(False)
+        global myapp
+        myapp = login()
+        nivel2().destroy()
+        myapp.show()
         event.ignore()
     def abilita_add_sala(self):
         tamanho = len(self.ui.lineEdit_5.text())
@@ -630,22 +634,23 @@ class nivel2(QtGui.QMainWindow):
         for s in senha:
             if s != ' ':
                 senhas += s
+        global myapp
         c = cad_login(self)
+        c.show()
         c.limpa()
         c.ui.lineEdit.setText(str(nome).decode('utf-8'))
         c.ui.comboBox_2.setCurrentIndex((nivel - 1))
         c.ui.lineEdit_3.setText(login)
-        c.ui.lineEdit_4.setText(senhas)
-        c.show()
-        self.setVisible(False)    
+        c.ui.lineEdit_4.setText(senhas)    
         self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.atualiza_login)
         c.ui.lineEdit.setFocus()
+        self.setVisible(False)
     def add_login(self):
         c = cad_login(self)
-        self.setVisible(False)
         c.show()
         self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.add_login)
         c.ui.lineEdit.setFocus()
+        self.setVisible(False)
     def tabela_logins(self):
         self.ui.tableWidget_6.clear()
         if self.ui.lineEdit_9.text() > 0:
@@ -1076,10 +1081,10 @@ class nivel2(QtGui.QMainWindow):
             pass
     def add_user(self):
         c = cad_user(self)
-        self.setVisible(False)
         c.show()
         self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.add_user)
         c.ui.lineEdit.setFocus()
+        self.setVisible(False)
     def lista_user(self):
         select = self.ui.tableWidget_2.selectedItems()
         global usr_id
@@ -1094,18 +1099,18 @@ class nivel2(QtGui.QMainWindow):
         cpf = list_user[4]
         tipo = list_user[5]
         c = cad_user(self)
+        c.show()
         c.limpa()
         c.ui.lineEdit.setText(nome)
         c.ui.spinBox.setValue(int(cod))
         c.ui.lineEdit_3.setText(eml)
         c.ui.lineEdit_4.setText(cpf)
-        if tipo[:1] == 'P':c.ui.comboBox.setCurrentIndex(0)
+        if tipo[:1] == 'P': c.ui.comboBox.setCurrentIndex(0)
         elif tipo[:1] == 'A' : c.ui.comboBox.setCurrentIndex(1)
-        else: c.ui.comboBox.setCurrentIndex(2)
-        c.show()
-        self.setVisible(False)    
+        else: c.ui.comboBox.setCurrentIndex(2)   
         self.connect(c.ui.pushButton,QtCore.SIGNAL('clicked()'),c.atualiza_user)
         c.ui.lineEdit.setFocus()
+        self.setVisible(False)
     def exclui_retiradas(self):
         global exc
         select = self.ui.tableWidget.selectedItems()
@@ -1315,17 +1320,17 @@ class nivel2(QtGui.QMainWindow):
 
 class cad_login(QtGui.QMainWindow):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(cad_login,self).__init__(parent)
         self.ui = Ui_Cad_Logins()
         self.ui.setupUi(self)             
         QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL('clicked()'),self.fecha)
         self.limpa()
     def closeEvent(self,event):
-        n = nivel2(self)
-        n.setVisible(True)
-        n.ui.toolBox.setCurrentIndex(1)
-        n.ui.tabWidget.setCurrentIndex(4)
-        self.setVisible(False)
+        global myapp
+        myapp = nivel2()
+        myapp.show()
+        myapp.ui.toolBox.setCurrentIndex(1)
+        myapp.ui.tabWidget.setCurrentIndex(4)
         event.ignore()    
     def limpa(self):
         self.ui.lineEdit.clear()
@@ -1402,16 +1407,16 @@ class cad_login(QtGui.QMainWindow):
     
 class cad_user(QtGui.QMainWindow):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
+        super(cad_user,self).__init__(parent)
         self.ui = Ui_Cadast_user()
         self.ui.setupUi(self)             
         QtCore.QObject.connect(self.ui.pushButton_2,QtCore.SIGNAL('clicked()'),self.fecha)
         self.limpa()
     def closeEvent(self,event):
-        n = nivel2(self)
-        n.setVisible(True)
-        n.ui.toolBox.setCurrentIndex(1)
-        self.setVisible(False)
+        global myapp
+        myapp = nivel2()
+        myapp.show()
+        myapp.ui.toolBox.setCurrentIndex(1)
         event.ignore()
     def limpa(self):
         self.ui.lineEdit.clear()
