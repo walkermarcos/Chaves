@@ -127,22 +127,24 @@ class login(QtGui.QMainWindow):
             where l.login = '%s' and senha = '%s' ''' % (str(nome),str(senha))
 	try:
 	  log = select_banco_str(sql)
-	except psycopg2.Error as error:
-	  QtGui.QMessageBox.about(self,"Problema",error)
-        if len(log) > 0:
-            logs = int(log[0][1])
-            if log[0][0] == 1: # Nivel 1
-                sql = 'update logins set ativo = True where id = %d' % logs
-                insert_banco(sql)
-                myapp = nivel1()
-            elif log[0][0] == 2: # Nivel 2
-                myapp = nivel2()
-        else:
-            t = dialog(self)
-            texto = "Usuário e/ou senha inválidos!"
-            t.ui.label.setText(texto.decode('utf-8'))
-            t.show()
-
+	  if len(log) > 0:
+	      logs = int(log[0][1])
+	      if log[0][0] == 1: # Nivel 1
+		  sql = 'update logins set ativo = True where id = %d' % logs
+		  insert_banco(sql)
+		  myapp = nivel1()
+	      elif log[0][0] == 2: # Nivel 2
+		  myapp = nivel2()
+	  else:
+	      t = dialog(self)
+	      texto = "Usuário e/ou senha inválidos!"
+	      t.ui.label.setText(texto.decode('utf-8'))
+	      t.show()
+        except psycopg2.Error as error:
+	 erro = "%s" % error
+	 QtGui.QMessageBox.about(self,"Problema","%s" % erro.decode("UTF-8"))
+	 pass
+    
 class conf(QtGui.QDialog):
     def __init__(self,parent = None):
         super(conf,self).__init__(parent)
@@ -327,20 +329,23 @@ class entregar(QtGui.QMainWindow):
     def fecha(self):
         self.close()  
     def ent_valores(self):
-        chave_id = self.ui.combo_sal.itemText(self.ui.combo_sal.currentIndex())[:3]
-        sql = 'select chave_id from retiradas where datahora_rec isnull and chave_id = %d' % int(chave_id)
-        testa = select_banco_str(sql)
-        if len(testa) > 0:
-            d = dialog(self)
-            d.ui.label.setText("Chave em aberto!")
-            d.show()
-        else:    
-            global logs
-            usr_id = self.ui.lineEdit.text()[:3]
-            sql = 'insert into retiradas(login_id,chave_id,usuario_id,datahora_ent) values(%d,%d,%d,now())' % (int(logs),
-                                                                                            int(chave_id),int(usr_id))
-            insert_banco(sql)
-            self.close()
+      try:
+	  chave_id = self.ui.combo_sal.itemText(self.ui.combo_sal.currentIndex())[:3]
+	  sql = 'select chave_id from retiradas where datahora_rec isnull and chave_id = %d' % int(chave_id)
+	  testa = select_banco_str(sql)
+	  if len(testa) > 0:
+	      d = dialog(self)
+	      d.ui.label.setText("Chave em aberto!")
+	      d.show()
+	  else:    
+	      global logs
+	      usr_id = self.ui.lineEdit.text()[:3]
+	      sql = 'insert into retiradas(login_id,chave_id,usuario_id,datahora_ent) values(%d,%d,%d,now())' % (int(logs),
+											      int(chave_id),int(usr_id))
+	      insert_banco(sql)
+	      self.close()
+      except ValueError:
+	QtGui.QMessageBox.about(self,"Alerta!","Aconteceu um erro!")
     def preenche_pred(self):
         self.ui.combo_pred.clear()
         sql = 'select * from predios'
@@ -429,13 +434,16 @@ class receber(QtGui.QMainWindow):
         myapp.show()
         event.ignore()
     def recebe_chaves(self): 
-        retir_id = int(self.ui.combo_chav.itemText(self.ui.combo_chav.currentIndex())[:4])   
-        sql = 'update retiradas set datahora_rec = now() where id = %d' % retir_id
-        insert_banco(sql)
-        self.preenche_combo()
-        t = dialog(self)
-        t.ui.label.setText("Chave recebida com sucesso!")
-        t.show()
+      try:
+	  retir_id = int(self.ui.combo_chav.itemText(self.ui.combo_chav.currentIndex())[:4])   
+	  sql = 'update retiradas set datahora_rec = now() where id = %d' % retir_id
+	  insert_banco(sql)
+	  self.preenche_combo()
+	  t = dialog(self)
+	  t.ui.label.setText("Chave recebida com sucesso!")
+	  t.show()
+      except ValueError:
+	QtGui.QMessageBox.about(self,"Alerta!","Aconteceu um erro!")
     def preenche_pred(self):
         self.ui.combo_pred.clear()
         sql = 'select * from predios'
