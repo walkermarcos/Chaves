@@ -19,7 +19,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="7" column="0">
+    <item row="8" column="0">
      <widget class="QLabel" name="label_3">
       <property name="font">
        <font>
@@ -31,9 +31,6 @@
        <string>Sala:</string>
       </property>
      </widget>
-    </item>
-    <item row="7" column="1" colspan="2">
-     <widget class="QComboBox" name="combo_sal"/>
     </item>
     <item row="1" column="0" colspan="3">
      <spacer name="horizontalSpacer">
@@ -48,35 +45,12 @@
       </property>
      </spacer>
     </item>
-    <item row="5" column="2">
+    <item row="6" column="2">
      <widget class="QPushButton" name="but_proc">
       <property name="text">
        <string>Procurar</string>
       </property>
      </widget>
-    </item>
-    <item row="12" column="2">
-     <widget class="QPushButton" name="but_canc">
-      <property name="text">
-       <string>Cancelar</string>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="0" colspan="3">
-     <spacer name="horizontalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>459</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="3" column="1" colspan="2">
-     <widget class="QComboBox" name="combo_pred"/>
     </item>
     <item row="0" column="0" colspan="3">
      <widget class="QLabel" name="label">
@@ -85,8 +59,8 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_2">
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_4">
       <property name="font">
        <font>
         <weight>75</weight>
@@ -94,11 +68,28 @@
        </font>
       </property>
       <property name="text">
-       <string>Predio:</string>
+       <string>Usuario:</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="1">
+    <item row="4" column="1" colspan="2">
+     <widget class="QComboBox" name="combo_pred"/>
+    </item>
+    <item row="13" column="0" colspan="2">
+     <widget class="QPushButton" name="but_ent">
+      <property name="text">
+       <string>Entregar chave</string>
+      </property>
+     </widget>
+    </item>
+    <item row="13" column="2">
+     <widget class="QPushButton" name="but_canc">
+      <property name="text">
+       <string>Cancelar</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="1">
      <widget class="QLineEdit" name="lineEdit">
       <property name="minimumSize">
        <size>
@@ -114,8 +105,11 @@
       </property>
      </widget>
     </item>
-    <item row="5" column="0">
-     <widget class="QLabel" name="label_4">
+    <item row="8" column="1" colspan="2">
+     <widget class="QComboBox" name="combo_sal"/>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_2">
       <property name="font">
        <font>
         <weight>75</weight>
@@ -123,15 +117,54 @@
        </font>
       </property>
       <property name="text">
-       <string>Usuario:</string>
+       <string>Predio:</string>
       </property>
      </widget>
     </item>
-    <item row="12" column="0" colspan="2">
-     <widget class="QPushButton" name="but_ent">
-      <property name="text">
-       <string>Entregar chave</string>
+    <item row="12" column="0" colspan="3">
+     <spacer name="horizontalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>459</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="2" column="0">
+     <widget class="QFrame" name="lista">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="3" column="0">
+          <widget class="QPushButton" name="pushButton_2">
+           <property name="text">
+            <string>Cancelar</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QPushButton" name="pushButton">
+           <property name="text">
+            <string>Ok</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QListWidget" name="listWidget"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>

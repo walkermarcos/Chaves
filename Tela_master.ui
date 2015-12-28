@@ -531,7 +531,7 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
+            <y>-141</y>
             <width>667</width>
             <height>295</height>
            </rect>
@@ -580,7 +580,7 @@
               <enum>QTabWidget::West</enum>
              </property>
              <property name="currentIndex">
-              <number>4</number>
+              <number>1</number>
              </property>
              <widget class="QWidget" name="tab">
               <property name="sizePolicy">
