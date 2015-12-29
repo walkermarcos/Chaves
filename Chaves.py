@@ -148,8 +148,8 @@ class Chaves(QtGui.QMainWindow):
     self.preenche_pred()
     self.tabela_retiradas()
     self.lista_logins()
-    self.ui.toolBox.setCurrentIndex(0)
-    self.ui.tabWidget.setCurrentIndex(0)
+    #self.ui.toolBox.setCurrentIndex(0)
+    #self.ui.tabWidget.setCurrentIndex(0)
     self.preenche_usuarios()
     self.tabela_autos()
     self.tabela_salas()
@@ -342,7 +342,7 @@ class Chaves(QtGui.QMainWindow):
     if len(self.ui.lineEdit_8.text()) > 0:
       filtro = str(self.ui.lineEdit_8.text())
       sql = ''' select id,nome from predios 
-	  where upper(nome) like '%s%%'
+	  where remove_acento(upper(nome)) like '%s%%'
 	  order by nome''' % filtro.upper()
     else:
       sql = ''' select id,nome from predios
@@ -500,34 +500,34 @@ class Chaves(QtGui.QMainWindow):
       where upper(nome) like '%s%%' and predio_id = %d
       order by nome ''' % (filtro.upper(),int(predio))
     else:
-      try:
-	sql = ''' select id,nome,direito from salas
+      sql = ''' select id,nome,direito from salas
 		where predio_id = %d
 		order by nome ''' % int(predio)
-	salas = select_banco_str(sql)            
-	colunas = [' ID ','Nome','Direito'] 
-	if len(salas) > 0:
-	  self.ui.table_sala.setRowCount(len(salas))
-	  self.ui.table_sala.setColumnCount(len(colunas))         
-	  for j in range(len(colunas)):
-	    item2 = QtGui.QTableWidgetItem(colunas[j])
-	    self.ui.table_sala.setHorizontalHeaderItem(j,item2)
-	    maior = len(colunas[j])
-	    for i in range(len(salas)):
-	      if salas[i][j] == 'p': texto = 'Todos Professores'
-	      elif salas[i][j] == 'a': texto = 'Todos Alunos'
-	      elif salas[i][j] == None: texto = ''
-	      else: texto = str(salas[i][j])
-	      item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
-	      self.ui.table_sala.setItem(i,j,item)
-	      if len(texto) > maior: maior = len(texto)
-	    self.ui.table_sala.setColumnWidth(j,(maior*6))  
-	  else: 
-	    self.ui.table_sala.clear()
-	    self.ui.table_sala.setRowCount(0)
-	    self.ui.table_sala.setColumnCount(0) 
-      except ValueError:
-	pass 
+    try:
+      salas = select_banco_str(sql)            
+      colunas = [' ID ','Nome','Direito'] 
+      if len(salas) > 0:
+	self.ui.table_sala.setRowCount(len(salas))
+	self.ui.table_sala.setColumnCount(len(colunas))         
+	for j in range(len(colunas)):
+	  item2 = QtGui.QTableWidgetItem(colunas[j])
+	  self.ui.table_sala.setHorizontalHeaderItem(j,item2)
+	  maior = len(colunas[j])
+	  for i in range(len(salas)):
+	    if salas[i][j] == 'p': texto = 'Todos Professores'
+	    elif salas[i][j] == 'a': texto = 'Todos Alunos'
+	    elif salas[i][j] == None: texto = ''
+	    else: texto = str(salas[i][j])
+	    item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
+	    self.ui.table_sala.setItem(i,j,item)
+	    if len(texto) > maior: maior = len(texto)
+	  self.ui.table_sala.setColumnWidth(j,(maior*6))  
+      else: 
+	self.ui.table_sala.clear()
+	self.ui.table_sala.setRowCount(0)
+	self.ui.table_sala.setColumnCount(0) 
+    except ValueError:
+      pass 
   def insert_sala(self):
     nome = self.ui.line_sala.text()[:10]
     predio = self.ui.comboBox_7.itemText(self.ui.comboBox_7.currentIndex())[:3]
@@ -652,7 +652,7 @@ class Chaves(QtGui.QMainWindow):
     self.ui.listWidget_2.clear()
     if len(self.ui.filtra_user.text()) > 0:
       nome = u"%s" % str(self.ui.filtra_user.text())
-      sql = ''' select id,nome from usuarios where upper(nome) like '%s%%'
+      sql = ''' select id,nome from usuarios where remove_acento(upper(nome)) like '%s%%'
 	      order by nome''' % nome.upper()
     else:
       sql = ''' select id,nome from usuarios order by nome '''
@@ -775,7 +775,7 @@ class Chaves(QtGui.QMainWindow):
     self.ui.table_user.clear()
     if self.ui.filtra_nome.text() > 0:
       nome = str(self.ui.filtra_nome.text())
-      sql = ''' select * from usuarios where upper(nome) like '%s%%' order by nome''' % nome.upper()
+      sql = ''' select * from usuarios where remove_acento(upper(nome)) like '%s%%' order by nome''' % nome.upper()
     else:
       sql = ''' select * from usuarios'''
     users = select_banco_str(sql) 
@@ -1189,9 +1189,13 @@ class entregar(QtGui.QMainWindow):
   def procura_usr(self):
     self.ui.combo_sal.clear()
     predio_id = self.ui.combo_pred.itemText(self.ui.combo_pred.currentIndex())[:3]
-    usr_cpf = 'apospoaposp'
-    cpf = 'posiposis'
+    usr_cpf = 'poipoipoipo'
+    cpf = ''
     user = '%s' % self.ui.lineEdit.text()
+    for a in user[:3]:
+      if isnumeric(a):
+	usr_cpf = ''
+	break
     for i in range(0,len(user)):
       if isnumeric(user[i]) or user[i] == '0':
 	usr_cpf += str(user[i])   

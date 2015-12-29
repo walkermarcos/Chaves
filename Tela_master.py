@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Tela_master.ui'
 #
-# Created: Mon Dec 28 14:13:47 2015
+# Created: Tue Dec 29 01:26:37 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -1021,8 +1021,8 @@ class Ui_Projeto_Chaves(object):
         Projeto_Chaves.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(Projeto_Chaves)
-        self.toolBox.setCurrentIndex(1)
-        self.tabWidget.setCurrentIndex(4)
+        self.toolBox.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Projeto_Chaves)
 
     def retranslateUi(self, Projeto_Chaves):
