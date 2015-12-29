@@ -2,7 +2,6 @@
 from PyQt4 import QtGui,QtCore
 from PyQt4.Qt import QTimer
 from Tela_master import Ui_Projeto_Chaves
-from dialog import Ui_Dialog
 from dialog3 import Ui_Dialog_3
 from conf import Ui_Conf
 from entregar import Ui_Mainentrega
