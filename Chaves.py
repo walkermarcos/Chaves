@@ -147,8 +147,6 @@ class Chaves(QtGui.QMainWindow):
     self.preenche_pred()
     self.tabela_retiradas()
     self.lista_logins()
-    #self.ui.toolBox.setCurrentIndex(0)
-    #self.ui.tabWidget.setCurrentIndex(0)
     self.preenche_usuarios()
     self.tabela_autos()
     self.tabela_salas()
@@ -203,9 +201,9 @@ class Chaves(QtGui.QMainWindow):
 	sql = ''' delete from logins where id = %d ''' % int(e)
 	insert_banco(sql)
 	self.tabela_logins()
-      except psycopg2.IntegrityError:
-	texto = "Não foi possivel excluir login %d,contate administrador do sistema!" % e
-	QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
+      except psycopg2.IntegrityError as error:
+	erro = "%s" % error
+	QtGui.QMessageBox.about(self,'Alerta!',erro.decode("UTF-8"))
 	pass
   def exclui_logins(self):
     select = self.ui.table_login.selectedItems()
@@ -301,9 +299,9 @@ class Chaves(QtGui.QMainWindow):
 	  self.tabela_predios()
 	  self.preenche_pred()
 	  self.ui.nome_predio.clear()
-	except psycopg2.Error:
-	  texto = "Não foi possível incluir,contate administrador!"
-	  QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
+	except psycopg2.Error as error:
+	  erro = "%s" % error
+	  QtGui.QMessageBox.about(self,'Alerta!',erro.decode("UTF-8"))
 	  pass            
   def exclui_predio(self):
     d = dialog3(self)
@@ -356,15 +354,14 @@ class Chaves(QtGui.QMainWindow):
 	self.ui.table_predio.setHorizontalHeaderItem(j,item2)
 	maior = len(colunas[j])
 	for i in range(len(predios)):
-	    sql = '''select nome from salas where predio_id = %d''' % predios[i][0]
-	    salas = select_banco_str(sql)
-	    nro_salas = len(salas)
-	    if j == 2:
-		texto = str(nro_salas)
-	    else:    texto = str(predios[i][j])
-	    item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
-	    self.ui.table_predio.setItem(i,j,item)
-	    if len(texto) > maior: maior = len(texto)
+	  sql = '''select nome from salas where predio_id = %d''' % predios[i][0]
+	  salas = select_banco_str(sql)
+	  nro_salas = len(salas)
+	  if j == 2: texto = str(nro_salas)
+	  else: texto = str(predios[i][j])
+	  item = QtGui.QTableWidgetItem(texto.decode('utf-8'))
+	  self.ui.table_predio.setItem(i,j,item)
+	  if len(texto) > maior: maior = len(texto)
 	self.ui.table_predio.setColumnWidth(j,(maior*6))  
     else: 
       self.ui.table_predio.clear()
@@ -397,16 +394,16 @@ class Chaves(QtGui.QMainWindow):
 	chaves = select_banco_str(sql)
 	maior = 0
 	for ch in chaves:
-	    if maior < ch[1]:
-		maior = ch[1]
-		chave_id = ch[0]
+	  if maior < ch[1]:
+	    maior = ch[1]
+	    chave_id = ch[0]
 	sql = ''' delete from chaves where id = %d''' % int(chave_id)
       try:
 	insert_banco(sql)
 	self.lista_copias()
-      except psycopg2.Error:
-	texto = "Não foi possível excluir cópia,contate administrador do sistema!"
-	QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
+      except psycopg2.Error as error:
+	erro = "%s" % error
+	QtGui.QMessageBox.about(self,'Alerta!',erro.decode("UTF-8"))
 	pass
   def insert_copia(self):
     select = self.ui.table_sala.selectedItems()
@@ -430,9 +427,9 @@ class Chaves(QtGui.QMainWindow):
       try:
 	insert_banco(sql)
 	self.lista_copias()
-      except psycopg2.Error:
-	texto = "Não foi possível cadastrar cópia,contate administrador do sistema!"
-	QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
+      except psycopg2.Error as error:
+	erro = "%s" % error
+	QtGui.QMessageBox.about(self,'Alerta!',erro.decode("UTF-8"))
 	pass
   def lista_copias(self):
     self.ui.but_excsala.setEnabled(True)
@@ -550,9 +547,9 @@ class Chaves(QtGui.QMainWindow):
 	self.ui.comboBox_8.setCurrentIndex(0)
 	self.tabela_predios()
 	self.preenche_sala()
-      except psycopg2.Error:
-	texto = "Problema ao cadastrar a sala,contate administrador do sistema!"
-	QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
+      except psycopg2.Error as error:
+	erro = "%s" % error
+	QtGui.QMessageBox.about(self,'Alerta!',erro.decode("UTF-8"))
 	pass
   def exclui_autos(self):
     select = self.ui.table_autos.selectedItems()
@@ -583,9 +580,9 @@ class Chaves(QtGui.QMainWindow):
 	texto = "Autorização %d excluida!" % e
 	QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
 	self.tabela_autos()
-      except psycopg2.Error:
-	texto = "Não foi possivel excluir autorização %d !" % e
-	QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
+      except psycopg2.Error as error:
+	erro = "%s" % error
+	QtGui.QMessageBox.about(self,'Alerta!',erro.decode("UTF-8"))
 	pass 
   def insert_autos(self):
     select = self.ui.listWidget_2.selectedItems()
@@ -610,9 +607,9 @@ class Chaves(QtGui.QMainWindow):
 	    insert_banco(sql)
 	    texto = "Autorização realizada com sucesso para usuário %d!" % int(li)
 	    QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
-	  except psycopg2.Error:
-	    texto = "Impossivel registrar autorização para %d!" % int(li)
-	    QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
+	  except psycopg2.Error as error:
+	    erro = "%s" % error
+	    QtGui.QMessageBox.about(self,'Alerta!',erro.decode("UTF-8"))
 	    pass  
       self.tabela_autos()      
   def tabela_autos(self):
@@ -732,9 +729,9 @@ class Chaves(QtGui.QMainWindow):
 	sql = ''' delete from retiradas where id = %d ''' % e
 	insert_banco(sql)
 	self.tabela_retiradas()
-      except psycopg2.Error:
-	texto = "Não foi possivel excluir retirada %d !" % e
-	QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
+      except psycopg2.Error as error:
+	erro = "%s" % error
+	QtGui.QMessageBox.about(self,'Alerta!',erro.decode("UTF-8"))
 	pass
   def excluiu(self):
     global excu
@@ -1387,7 +1384,7 @@ class cad_user(QtGui.QMainWindow):
 	  pass
 	self.limpa()
       else:
-	texot = "CPF inválido!"
+	texto = "CPF inválido!"
 	QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
     else:
       texto = "Usuário já cadastrado com esse nome!"
@@ -1412,9 +1409,9 @@ class cad_user(QtGui.QMainWindow):
 	insert_banco(sql)
 	texto = "Alteração feita com sucesso!"
 	QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
-      except psycopg2.Error:
-	texto = "Não foi possível realizar a alteração desejada.!"
-	QtGui.QMessageBox.about(self,'Alerta!',texto.decode('UTF-8'))
+      except psycopg2.Error as error:
+	erro = "%s" % error
+	QtGui.QMessageBox.about(self,'Alerta!',erro.decode("UTF-8"))
 	pass
       self.limpa()
     else:

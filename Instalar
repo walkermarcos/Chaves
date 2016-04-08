@@ -1,0 +1,7 @@
+sudo apt-get install python-qt4
+sudo apt-get install libxml2-dev libxslt1-dev python-dev
+sudo apt-get install python-lxml
+sudo apt-get install xvfb
+sudo apt-get install python-psycopg2
+sudo apt-get install python-pip
+sudo pip install glob2
