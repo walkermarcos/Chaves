@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'cad_login.ui'
 #
-# Created: Sat Dec 12 09:06:48 2015
+# Created: Mon Apr 11 16:07:23 2016
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
